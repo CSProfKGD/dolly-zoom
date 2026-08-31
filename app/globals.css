@@ -144,8 +144,9 @@ button { color: inherit; }
 
 @media (max-width: 980px) {
   .demo-page { grid-template-columns: 1fr; gap: 28px; }
-  .hero-block { display: grid; grid-template-columns: 1fr auto; column-gap: 34px; align-items: end; padding-top: 4px; }
-  .hero-block .eyebrow { grid-column: 1 / -1; }.hero-block h1 { max-width: none; }.hero-block .subtitle { max-width: 18ch; margin-top: 12px; }
+  .hero-block { padding-top: 4px; }
+  .hero-block h1 { max-width: none; }
+  .hero-block .subtitle { max-width: none; margin-top: 12px; }
   .visual-stack, .bottom-dock { grid-column: 1; }
 }
 
