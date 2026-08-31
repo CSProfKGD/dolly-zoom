@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://dolly-zoom.csprofkgd.chatgpt.site'),
   title: 'Dolly Zoom — Interactive Camera Demo',
   description: 'See how camera distance and focal length reshape perspective while a subject stays the same size.',
   openGraph: {

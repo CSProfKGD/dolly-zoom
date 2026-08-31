@@ -21,8 +21,8 @@ const BACKGROUND_X = 710;
 const SUBJECT_ORIGIN_X = 408;
 const DEPTH_SCALE = 52;
 const LATERAL_SCALE = 42;
-const MIN_SUBJECT_DEPTH = -1.25;
-const MAX_SUBJECT_DEPTH = 0.85;
+const MIN_SUBJECT_DEPTH = -4.5;
+const MAX_SUBJECT_DEPTH = 1.6;
 const CUBE_SIZE = 1.22;
 
 function clamp(value: number, min: number, max: number): number {
@@ -82,7 +82,7 @@ export function GeometryView({ distance, focalLength, subjectDepth, cubes, onSub
       onCubeChange(index, {
         ...pose,
         x: clamp((AXIS_Y - point.y) / LATERAL_SCALE, -2.25, 2.25),
-        z: clamp((SUBJECT_ORIGIN_X - point.x) / DEPTH_SCALE, -1.55, 0.95),
+        z: clamp((SUBJECT_ORIGIN_X - point.x) / DEPTH_SCALE, -4.5, 1.6),
       });
     }
     lastPointer.current = { x: event.clientX, y: event.clientY };
