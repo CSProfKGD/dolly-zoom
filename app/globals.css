@@ -129,9 +129,13 @@ button { color: inherit; }
 .dolly-switch:focus-visible { outline: 1px solid var(--cyan); outline-offset: 5px; border-radius: 2px; }
 .switch-glyph { position: relative; width: 28px; height: 16px; border: 1px solid rgba(245,245,247,.28); border-radius: 99px; }
 .switch-glyph i { position: absolute; left: 2px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: rgba(245,245,247,.62); transition: transform 180ms ease, background 180ms ease; }
-.dolly-switch.is-on { color: rgba(245,245,247,.72); }
-.dolly-switch.is-on .switch-glyph { border-color: rgba(53,200,237,.55); background: rgba(53,200,237,.12); }
-.dolly-switch.is-on .switch-glyph i { transform: translateX(12px); background: var(--cyan); }
+.dolly-switch.is-on { color: rgba(245,245,247,.96); }
+.dolly-switch.is-on .switch-glyph {
+  border-color: rgba(53,200,237,.92);
+  background: rgba(53,200,237,.3);
+  box-shadow: 0 0 0 3px rgba(53,200,237,.08);
+}
+.dolly-switch.is-on .switch-glyph i { transform: translateX(12px); background: #dff9ff; }
 .slider-wrap { position: relative; flex: 1 1 auto; min-width: 0; }
 .slider-wrap input { width: 100%; height: 21px; margin: 0; appearance: none; -webkit-appearance: none; background: transparent; cursor: ew-resize; }
 .slider-wrap input::-webkit-slider-runnable-track { height: 3px; border-radius: 99px; background: linear-gradient(to right, rgba(53,200,237,.8) var(--slider-progress), rgba(245,245,247,.2) var(--slider-progress)); }

@@ -66,7 +66,7 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
   const cameraX = 92 + travel * 218;
   const halfAngle = horizontalFovFromFocalLength(focalLength) * Math.PI / 360;
   const backgroundDistance = distance + BACKGROUND_DEPTH;
-  const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * 5;
+  const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * WORLD_TO_Y;
 
   const toSvgPoint = (event: ReactPointerEvent<SVGGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;

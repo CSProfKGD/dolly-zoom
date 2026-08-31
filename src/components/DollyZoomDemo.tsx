@@ -22,7 +22,7 @@ export function DollyZoomDemo() {
   const [focalLength, setFocalLength] = useState(FOCAL_LENGTH_FAR);
   const [stableDepth, setStableDepth] = useState(0);
   const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
-    { x: -2.35, z: -3.3, yaw: -0.474 },
+    { x: -2.35, z: -3.3, yaw: -0.393 },
     { x: 2.15, z: -4.55, yaw: -0.2 },
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
