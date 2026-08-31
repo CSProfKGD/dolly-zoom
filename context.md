@@ -20,6 +20,7 @@
 - Gold `#ffd026` identifies the subject and focal-length value.
 - System Apple font stack only. Numbers use tabular figures. Borders remain at hairline opacity.
 - The page is one continuous black presentation stage: hero, cinematic scene, technical diagram, then borderless controls. All major left and right edges share one content grid.
+- Control hierarchy is Camera Position first, Dolly Zoom mode second, and the icon-only Play action third. Keep Camera Position and the mode switch on one strict slider-width label row; Play stays a quiet circular action beside the primary label.
 
 ## Motion and accessibility
 
