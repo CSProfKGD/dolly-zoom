@@ -70,7 +70,7 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, -15]} receiveShadow>
         <planeGeometry args={[80, 90]} />
-        <meshStandardMaterial color="#050708" roughness={0.56} metalness={0.16} />
+        <meshStandardMaterial color="#010203" roughness={1} metalness={0} />
       </mesh>
     </>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { horizontalFovFromFocalLength } from '@/src/lib/cameraMath';
 
 export type SlabPose = { x: number; z: number; yaw: number };
@@ -79,6 +79,14 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
     event.preventDefault();
     if (Number.isFinite(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
     drag.current = { index, mode: event.buttons === 3 ? 'rotate' : 'move', x: event.clientX, y: event.clientY };
+  };
+
+  const detectRotationChord = (index: number, event: ReactMouseEvent<SVGGElement>) => {
+    if ((event.buttons & 3) !== 3) return;
+    event.preventDefault();
+    const active = drag.current;
+    if (active?.index === index) active.mode = 'rotate';
+    else drag.current = { index, mode: 'rotate', x: event.clientX, y: event.clientY };
   };
 
   const moveSlab = (index: number, event: ReactPointerEvent<SVGGElement>) => {
@@ -185,6 +193,7 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
             tabIndex={0}
             aria-label={`${index === 0 ? 'Teal' : 'Purple'} cube. Drag to move; hold both mouse buttons while dragging to rotate.`}
             onPointerDown={(event) => beginSlabDrag(index, event)}
+            onMouseDown={(event) => detectRotationChord(index, event)}
             onPointerMove={(event) => moveSlab(index, event)}
             onPointerUp={() => { drag.current = null; }}
             onPointerCancel={() => { drag.current = null; }}

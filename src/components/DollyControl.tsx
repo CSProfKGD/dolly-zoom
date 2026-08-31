@@ -49,7 +49,6 @@ export function DollyControl({
         >
           <span className="switch-label">Dolly Zoom</span>
           <span className="switch-glyph" aria-hidden="true"><i /></span>
-          <span className="switch-state">{compensated ? 'On' : 'Off'}</span>
         </button>
       </div>
     </div>
