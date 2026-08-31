@@ -7,9 +7,10 @@
 - Stable-plane compensation is `f = Z × 35 / 6`, giving 35 mm at 6 m, 23.3 mm at the 4 m midpoint, and 11.7 mm at 2 m.
 - Sensor dimensions are 36 × 24 mm. Camera-view FOV is vertical: `2 atan(24 / 2f)`. The top-down frustum uses the 36 mm horizontal sensor dimension.
 - The top-down cyan boundaries demarcate the actual horizontal field of view. Derive horizontal FOV from the camera panel's live aspect ratio and the shared vertical FOV, then convert the world-space frustum half-width with the same `WORLD_TO_Y` scale used for lateral object positions. Never assume a 3:2 canvas or use an arbitrary visual multiplier.
+- Wait for a stable camera-panel resize measurement before rendering the frustum, so the geometry never paints a placeholder FOV or flashes when the page first loads.
 - Project the top-down camera and its ray origin from the real world-space camera distance with the same depth transform used for the objects. Never position the ray origin decoratively.
 - The foreground sphere has diameter 1.7 world units at `z = 0`. The two non-sphere objects are cubes and must remain cubes: do not reinterpret, stretch, or redesign them as slabs, walls, columns, or other rectangular prisms. A nearly black shadow-catching floor grounds the objects without exposing a rectangular boundary or specular hotspot.
-- The cubes bracket the sphere in depth so the perspective separation is obvious: one cube remains between the camera and the sphere (`z > 0`), while the other remains behind the sphere (`z < 0`).
+- The cubes sit close to the sphere depth as mirrored left/right bookends. The purple cube's front corner extends ahead of the subject plane while the teal cube remains farther back, producing a readable perspective shift without either cube overwhelming the Near view.
 - Compensation preserves `f / Z = 35 / 6` at the independently selected stable-depth plane. Both cubes can translate with one-button drag and rotate while both mouse buttons are held.
 - Projected size follows the pinhole relationship `imageSize = worldSize × f / distance`. Never scale scene objects to simulate compensation.
 
@@ -25,7 +26,7 @@
 ## Motion and accessibility
 
 - Direct slider movement is never eased; only autoplay and compensation restoration use easing.
-- The page loads completely still. Play continues smoothly from the current camera position toward the near endpoint, or reverses toward far when already at near, without snapping first. It stops after one pass, becomes a stop control while running, and any direct interaction cancels the sweep immediately.
+- The page loads completely still. Play continues smoothly from the current camera position without snapping, then ping-pongs continuously between Near and Far until stopped. It becomes a stop control while running, and any direct interaction cancels the animation immediately.
 - All controls are native buttons/ranges with visible focus rings and accessible labels.
 - The SVG has a title and description. The WebGL panel has a text alternative.
 - `prefers-reduced-motion` minimizes CSS transitions; no animation runs automatically on load.

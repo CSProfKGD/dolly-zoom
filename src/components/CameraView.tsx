@@ -3,7 +3,7 @@
 /* eslint-disable react-hooks/immutability */
 
 import { Canvas, useThree } from '@react-three/fiber';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import * as THREE from 'three';
 import type { SlabPose, SubjectPose } from './GeometryView';
 
@@ -15,7 +15,7 @@ type CameraViewProps = {
   onAspectChange?: (aspect: number) => void;
 };
 
-function CameraRig({ distance, verticalFov, onAspectChange }: Pick<CameraViewProps, 'distance' | 'verticalFov' | 'onAspectChange'>) {
+function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' | 'verticalFov'>) {
   const { camera, invalidate, size } = useThree();
 
   useEffect(() => {
@@ -26,9 +26,8 @@ function CameraRig({ distance, verticalFov, onAspectChange }: Pick<CameraViewPro
     perspective.far = 80;
     perspective.lookAt(0, 1.02, -0.65);
     perspective.updateProjectionMatrix();
-    onAspectChange?.(size.width / size.height);
     invalidate();
-  }, [camera, distance, invalidate, onAspectChange, size.height, size.width, verticalFov]);
+  }, [camera, distance, invalidate, size.height, size.width, verticalFov]);
 
   return null;
 }
@@ -91,8 +90,30 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
 }
 
 export function CameraView({ distance, verticalFov, slabs, subject, onAspectChange }: CameraViewProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container || !onAspectChange) return;
+    let settleTimer: number | null = null;
+    const updateAspect = () => {
+      if (settleTimer !== null) window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => {
+        const { width, height } = container.getBoundingClientRect();
+        if (width > 0 && height > 0) onAspectChange(width / height);
+      }, 80);
+    };
+    updateAspect();
+    const observer = new ResizeObserver(updateAspect);
+    observer.observe(container);
+    return () => {
+      observer.disconnect();
+      if (settleTimer !== null) window.clearTimeout(settleTimer);
+    };
+  }, [onAspectChange]);
+
   return (
-    <div className="camera-view" aria-label="Perspective camera view of a golden sphere and two colored cubes">
+    <div ref={containerRef} className="camera-view" aria-label="Perspective camera view of a golden sphere and two colored cubes">
       <Canvas
         dpr={[1, 1.75]}
         frameloop="demand"
@@ -100,7 +121,7 @@ export function CameraView({ distance, verticalFov, slabs, subject, onAspectChan
         camera={{ position: [0, 1.12, distance], fov: verticalFov, near: 0.05, far: 80 }}
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       >
-        <CameraRig distance={distance} verticalFov={verticalFov} onAspectChange={onAspectChange} />
+        <CameraRig distance={distance} verticalFov={verticalFov} />
         <ArchitecturalScene slabs={slabs} subject={subject} />
       </Canvas>
 

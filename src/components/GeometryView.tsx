@@ -10,7 +10,7 @@ export type SubjectPose = { x: number; z: number };
 type GeometryViewProps = {
   distance: number;
   focalLength: number;
-  cameraAspect: number;
+  cameraAspect: number | null;
   stableDepth: number;
   slabs: [SlabPose, SlabPose];
   subject: SubjectPose;
@@ -62,7 +62,7 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
   const subjectY = diagramY(subject.x);
   const stableX = diagramX(stableDepth);
   const cameraX = diagramX(distance);
-  const horizontalFov = horizontalFovFromVerticalFov(verticalFovFromFocalLength(focalLength), cameraAspect);
+  const horizontalFov = cameraAspect === null ? 0 : horizontalFovFromVerticalFov(verticalFovFromFocalLength(focalLength), cameraAspect);
   const halfAngle = horizontalFov * Math.PI / 360;
   const backgroundDistance = distance + BACKGROUND_DEPTH;
   const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * WORLD_TO_Y;
@@ -139,9 +139,13 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
         <title id="geometry-title">Top-down dolly zoom geometry</title>
         <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its two frustum boundaries pass the gold subject and two movable, rotated cubes.</desc>
 
-        <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(AXIS_Y - frustumHalfHeight)} L ${BACKGROUND_X} ${n(AXIS_Y + frustumHalfHeight)} Z`} />
-        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={n(AXIS_Y - frustumHalfHeight)} />
-        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={n(AXIS_Y + frustumHalfHeight)} />
+        {cameraAspect !== null && (
+          <>
+            <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(AXIS_Y - frustumHalfHeight)} L ${BACKGROUND_X} ${n(AXIS_Y + frustumHalfHeight)} Z`} />
+            <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={n(AXIS_Y - frustumHalfHeight)} />
+            <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={n(AXIS_Y + frustumHalfHeight)} />
+          </>
+        )}
 
         <g className="diagram-camera" transform={`translate(${n(cameraX)} ${AXIS_Y})`}>
           <rect x="-34" y="-11" width="28" height="22" rx="2" />

@@ -21,11 +21,11 @@ export function DollyZoomDemo() {
   const [compensated, setCompensated] = useState(true);
   const [focalLength, setFocalLength] = useState(FOCAL_LENGTH_FAR);
   const [stableDepth, setStableDepth] = useState(0);
-  const [cameraAspect, setCameraAspect] = useState(1.5);
+  const [cameraAspect, setCameraAspect] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
-    { x: -2.35, z: -4.6, yaw: -Math.PI / 4 },
-    { x: 1.9, z: 0.8, yaw: -0.2 },
+    { x: -2.2, z: -1.15, yaw: -Math.PI / 4 },
+    { x: 2.1, z: -0.2, yaw: Math.PI / 4 },
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
   const autoFrame = useRef<number | null>(null);
@@ -47,25 +47,24 @@ export function DollyZoomDemo() {
     cancelMotion();
     const startT = tRef.current;
     const endT = startT >= 0.999 ? 0 : 1;
-    const travel = Math.abs(endT - startT);
     setCompensated(true);
     setIsPlaying(true);
     setFocalLength(focalLengthForConstantScale(interpolateCameraDistance(startT) - stableDepth));
-    const started = performance.now();
-    const duration = 3800 * Math.max(0.18, travel);
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - started) / duration);
-      const nextT = startT + (endT - startT) * easeInOutCubic(progress);
-      const nextDistance = interpolateCameraDistance(nextT);
-      setT(nextT);
-      setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
-      if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
-      else {
-        autoFrame.current = null;
-        setIsPlaying(false);
-      }
+    const startLeg = (fromT: number, toT: number) => {
+      const started = performance.now();
+      const duration = 3800 * Math.max(0.18, Math.abs(toT - fromT));
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - started) / duration);
+        const nextT = fromT + (toT - fromT) * easeInOutCubic(progress);
+        const nextDistance = interpolateCameraDistance(nextT);
+        setT(nextT);
+        setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
+        if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
+        else startLeg(toT, toT === 1 ? 0 : 1);
+      };
+      autoFrame.current = requestAnimationFrame(tick);
     };
-    autoFrame.current = requestAnimationFrame(tick);
+    startLeg(startT, endT);
   }, [cancelMotion, stableDepth]);
 
   const handleSlider = useCallback((nextT: number) => {
