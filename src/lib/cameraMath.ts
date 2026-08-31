@@ -24,6 +24,22 @@ export function focalLengthForConstantScale(
   return distance * referenceFocalLength / referenceDistance;
 }
 
+export function stablePlaneCompensationRatio(
+  focalLength: number,
+  cameraPosition: number,
+  stableDepth: number,
+): number {
+  return focalLength / (cameraPosition - stableDepth);
+}
+
+export function focalLengthForStablePlane(
+  cameraPosition: number,
+  stableDepth: number,
+  compensationRatio: number,
+): number {
+  return (cameraPosition - stableDepth) * compensationRatio;
+}
+
 export function fovFromFocalLength(focalLength: number, sensorDimension: number): number {
   return 2 * Math.atan(sensorDimension / (2 * focalLength)) * 180 / Math.PI;
 }

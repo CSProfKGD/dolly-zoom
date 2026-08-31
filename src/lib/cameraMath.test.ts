@@ -4,14 +4,17 @@ import {
   CAMERA_DISTANCE_FAR,
   CAMERA_DISTANCE_NEAR,
   FOCAL_LENGTH_FAR,
+  SENSOR_HEIGHT,
   computeFrustum,
   focalLengthForConstantScale,
+  focalLengthForStablePlane,
   horizontalFovFromVerticalFov,
   horizontalFovFromFocalLength,
   interpolateCameraDistance,
   projectRayToPlane,
   projectSize,
   projectToNdc,
+  stablePlaneCompensationRatio,
   verticalFovFromFocalLength,
 } from './cameraMath';
 
@@ -26,6 +29,22 @@ describe('camera math', () => {
     expect(focalLengthForConstantScale(CAMERA_DISTANCE_FAR)).toBeCloseTo(FOCAL_LENGTH_FAR, 8);
     expect(focalLengthForConstantScale((CAMERA_DISTANCE_FAR + CAMERA_DISTANCE_NEAR) / 2)).toBeCloseTo(FOCAL_LENGTH_FAR * (CAMERA_DISTANCE_FAR + CAMERA_DISTANCE_NEAR) / (2 * CAMERA_DISTANCE_FAR), 8);
     expect(focalLengthForConstantScale(CAMERA_DISTANCE_NEAR)).toBeCloseTo(FOCAL_LENGTH_FAR * CAMERA_DISTANCE_NEAR / CAMERA_DISTANCE_FAR, 8);
+  });
+
+  it('captures the current lens as a no-jump dolly-zoom reference', () => {
+    const cameraPosition = 4.7;
+    const stableDepth = -1.9;
+    const focalLength = 46.1;
+    const ratio = stablePlaneCompensationRatio(focalLength, cameraPosition, stableDepth);
+
+    expect(focalLengthForStablePlane(cameraPosition, stableDepth, ratio)).toBe(focalLength);
+
+    const reference = projectToNdc(0.8, focalLength, cameraPosition - stableDepth, 36);
+    [6.5, 5.2, 3.8, 2].forEach((nextCameraPosition) => {
+      const nextDepth = nextCameraPosition - stableDepth;
+      const nextFocal = focalLengthForStablePlane(nextCameraPosition, stableDepth, ratio);
+      expect(projectToNdc(0.8, nextFocal, nextDepth, 36)).toBeCloseTo(reference, 12);
+    });
   });
 
   it('derives vertical FOV from a 24mm sensor height', () => {
@@ -130,5 +149,20 @@ describe('camera math', () => {
     const wideFrustum = computeFrustum(camera, 700, 35, 2.2);
     expect(wideFrustum.top.y).toBeLessThan(nominalFrustum.top.y);
     expect(wideFrustum.bottom.y).toBeGreaterThan(nominalFrustum.bottom.y);
+  });
+
+  it('places SVG frustum boundaries on the exact horizontal camera-frame edges', () => {
+    const focalLength = 41.7;
+    const depth = 9.3;
+
+    [1.25, 1.5, 2.4].forEach((aspect) => {
+      const verticalFov = verticalFovFromFocalLength(focalLength);
+      const horizontalFov = horizontalFovFromVerticalFov(verticalFov, aspect);
+      const boundaryOffset = Math.tan(horizontalFov * Math.PI / 360) * depth;
+      const effectiveSensorWidth = SENSOR_HEIGHT * aspect;
+
+      expect(projectToNdc(boundaryOffset, focalLength, depth, effectiveSensorWidth)).toBeCloseTo(1, 12);
+      expect(projectToNdc(-boundaryOffset, focalLength, depth, effectiveSensorWidth)).toBeCloseTo(-1, 12);
+    });
   });
 });

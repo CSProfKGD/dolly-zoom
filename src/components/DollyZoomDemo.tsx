@@ -8,20 +8,13 @@ import type { SlabPose, SubjectPose } from './GeometryView';
 import {
   CAMERA_DISTANCE_FAR,
   FOCAL_LENGTH_FAR,
-  focalLengthForConstantScale,
+  focalLengthForStablePlane,
   interpolateCameraDistance,
+  stablePlaneCompensationRatio,
   verticalFovFromFocalLength,
 } from '@/src/lib/cameraMath';
 
 const INITIAL_STABLE_DEPTH = -1.9;
-
-function compensatedFocalLength(distance: number, stableDepth: number): number {
-  return focalLengthForConstantScale(
-    distance - stableDepth,
-    FOCAL_LENGTH_FAR,
-    CAMERA_DISTANCE_FAR - stableDepth,
-  );
-}
 
 function easeInOutCubic(value: number): number {
   return value < 0.5 ? 4 * value * value * value : 1 - Math.pow(-2 * value + 2, 3) / 2;
@@ -40,16 +33,14 @@ export function DollyZoomDemo() {
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: -0.25, z: INITIAL_STABLE_DEPTH });
   const autoFrame = useRef<number | null>(null);
-  const transitionFrame = useRef<number | null>(null);
+  const compensationRatio = useRef(stablePlaneCompensationRatio(FOCAL_LENGTH_FAR, CAMERA_DISTANCE_FAR, INITIAL_STABLE_DEPTH));
   const tRef = useRef(t);
   const distance = interpolateCameraDistance(t);
   const verticalFov = verticalFovFromFocalLength(focalLength);
 
   const cancelMotion = useCallback(() => {
     if (autoFrame.current !== null) cancelAnimationFrame(autoFrame.current);
-    if (transitionFrame.current !== null) cancelAnimationFrame(transitionFrame.current);
     autoFrame.current = null;
-    transitionFrame.current = null;
     setIsPlaying(false);
   }, []);
 
@@ -58,7 +49,6 @@ export function DollyZoomDemo() {
     const startT = tRef.current;
     const endT = startT >= 0.999 ? 0 : 1;
     setIsPlaying(true);
-    if (compensated) setFocalLength(compensatedFocalLength(interpolateCameraDistance(startT), stableDepth));
     const startLeg = (fromT: number, toT: number) => {
       const started = performance.now();
       const duration = 3800 * Math.max(0.18, Math.abs(toT - fromT));
@@ -67,7 +57,7 @@ export function DollyZoomDemo() {
         const nextT = fromT + (toT - fromT) * easeInOutCubic(progress);
         const nextDistance = interpolateCameraDistance(nextT);
         setT(nextT);
-        if (compensated) setFocalLength(compensatedFocalLength(nextDistance, stableDepth));
+        if (compensated) setFocalLength(focalLengthForStablePlane(nextDistance, stableDepth, compensationRatio.current));
         if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
         else startLeg(toT, toT === 1 ? 0 : 1);
       };
@@ -80,21 +70,8 @@ export function DollyZoomDemo() {
     cancelMotion();
     const nextDistance = interpolateCameraDistance(nextT);
     setT(nextT);
-    if (compensated) setFocalLength(compensatedFocalLength(nextDistance, stableDepth));
+    if (compensated) setFocalLength(focalLengthForStablePlane(nextDistance, stableDepth, compensationRatio.current));
   }, [cancelMotion, compensated, stableDepth]);
-
-  const animateFocalTo = useCallback((target: number) => {
-    if (transitionFrame.current !== null) cancelAnimationFrame(transitionFrame.current);
-    const from = focalLength;
-    const started = performance.now();
-    const tick = (now: number) => {
-      const progress = Math.min(1, (now - started) / 380);
-      setFocalLength(from + (target - from) * easeInOutCubic(progress));
-      if (progress < 1) transitionFrame.current = requestAnimationFrame(tick);
-      else transitionFrame.current = null;
-    };
-    transitionFrame.current = requestAnimationFrame(tick);
-  }, [focalLength]);
 
   const toggleCompensation = useCallback(() => {
     cancelMotion();
@@ -102,21 +79,21 @@ export function DollyZoomDemo() {
       setCompensated(false);
       return;
     }
+    compensationRatio.current = stablePlaneCompensationRatio(focalLength, distance, stableDepth);
     setCompensated(true);
-    animateFocalTo(compensatedFocalLength(distance, stableDepth));
-  }, [animateFocalTo, cancelMotion, compensated, distance, stableDepth]);
+  }, [cancelMotion, compensated, distance, focalLength, stableDepth]);
 
   const updateStableDepth = useCallback((nextDepth: number) => {
     cancelMotion();
     setStableDepth(nextDepth);
-    if (compensated) setFocalLength(compensatedFocalLength(distance, nextDepth));
-  }, [cancelMotion, compensated, distance]);
+    if (compensated) compensationRatio.current = stablePlaneCompensationRatio(focalLength, distance, nextDepth);
+  }, [cancelMotion, compensated, distance, focalLength]);
 
   const updateFocalLength = useCallback((nextFocalLength: number) => {
     cancelMotion();
-    setCompensated(false);
+    if (compensated) compensationRatio.current = stablePlaneCompensationRatio(nextFocalLength, distance, stableDepth);
     setFocalLength(nextFocalLength);
-  }, [cancelMotion]);
+  }, [cancelMotion, compensated, distance, stableDepth]);
 
   const updateSlab = useCallback((index: number, pose: SlabPose) => {
     cancelMotion();
