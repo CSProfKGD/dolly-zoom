@@ -148,7 +148,6 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
         <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(AXIS_Y - frustumHalfHeight)} L ${BACKGROUND_X} ${n(AXIS_Y + frustumHalfHeight)} Z`} />
         <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y - frustumHalfHeight} />
         <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y + frustumHalfHeight} />
-        <line className="background-plane-svg" x1={BACKGROUND_X} y1="18" x2={BACKGROUND_X} y2="246" />
         <line className="edge-ray" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={rayCenterAtBackground - rayHalfHeightAtBackground} />
         <line className="edge-ray" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={rayCenterAtBackground + rayHalfHeightAtBackground} />
 
