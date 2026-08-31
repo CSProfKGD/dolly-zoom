@@ -24,8 +24,8 @@ const BACKGROUND_X = 738;
 const BACKGROUND_DEPTH = 10.5;
 const WORLD_TO_Y = 24;
 const WORLD_TO_X = (BACKGROUND_X - SUBJECT_X) / BACKGROUND_DEPTH;
-const SLAB_DEPTH = 0.5;
 const SLAB_WIDTHS = [2.35, 1.72] as const;
+const SLAB_DEPTHS = [2.35, 0.5] as const;
 const FAR_DISTANCE = 6;
 const NEAR_DISTANCE = 2;
 const MIN_STABLE_DEPTH = -4;
@@ -44,7 +44,7 @@ function diagramY(x: number): number { return AXIS_Y - x * WORLD_TO_Y; }
 
 function slabFootprint(pose: SlabPose, index: number): string {
   const halfWidth = SLAB_WIDTHS[index] / 2;
-  const halfDepth = SLAB_DEPTH / 2;
+  const halfDepth = SLAB_DEPTHS[index] / 2;
   const cos = Math.cos(pose.yaw);
   const sin = Math.sin(pose.yaw);
   return [[-halfWidth, -halfDepth], [halfWidth, -halfDepth], [halfWidth, halfDepth], [-halfWidth, halfDepth]]

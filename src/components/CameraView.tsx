@@ -75,7 +75,7 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
       </mesh>
 
       <mesh position={[slabs[0].x, 5.5, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.35, 11, 0.48]} />
+        <boxGeometry args={[2.35, 11, 2.35]} />
         <meshPhysicalMaterial color="#168f8c" roughness={0.3} metalness={0.1} clearcoat={0.4} clearcoatRoughness={0.25} />
       </mesh>
       <mesh position={[slabs[1].x, 5.9, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
