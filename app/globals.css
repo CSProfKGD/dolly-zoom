@@ -126,10 +126,10 @@ button { color: inherit; }
 .control-label { color: var(--muted); font-size: 9px; font-weight: 650; letter-spacing: .18em; text-transform: uppercase; }
 .dolly-switch {
   display: inline-grid;
-  grid-template-columns: 72px 21px 24px;
+  grid-template-columns: 94px 21px 24px;
   align-items: center;
   column-gap: 8px;
-  width: 133px;
+  width: 155px;
   height: 32px;
   padding: 0;
   border: 0;
