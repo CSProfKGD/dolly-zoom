@@ -36,6 +36,11 @@ export function horizontalFovFromFocalLength(focalLength: number): number {
   return fovFromFocalLength(focalLength, SENSOR_WIDTH);
 }
 
+export function horizontalFovFromVerticalFov(verticalFov: number, aspect: number): number {
+  const verticalHalfAngle = verticalFov * Math.PI / 360;
+  return 2 * Math.atan(Math.tan(verticalHalfAngle) * aspect) * 180 / Math.PI;
+}
+
 export function projectSize(worldSize: number, focalLength: number, cameraDistance: number): number {
   return worldSize * focalLength / cameraDistance;
 }
@@ -45,8 +50,9 @@ export function projectRayToPlane(camera: DiagramPoint, through: DiagramPoint, p
   return { x: planeX, y: camera.y + (through.y - camera.y) * scale };
 }
 
-export function computeFrustum(camera: DiagramPoint, planeX: number, focalLength: number): FrustumGeometry {
-  const halfAngleRadians = horizontalFovFromFocalLength(focalLength) * Math.PI / 360;
+export function computeFrustum(camera: DiagramPoint, planeX: number, focalLength: number, aspect = SENSOR_WIDTH / SENSOR_HEIGHT): FrustumGeometry {
+  const verticalFov = verticalFovFromFocalLength(focalLength);
+  const halfAngleRadians = horizontalFovFromVerticalFov(verticalFov, aspect) * Math.PI / 360;
   const halfHeight = Math.tan(halfAngleRadians) * (planeX - camera.x);
   return {
     top: { x: planeX, y: camera.y - halfHeight },

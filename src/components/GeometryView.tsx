@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
-import { horizontalFovFromFocalLength } from '@/src/lib/cameraMath';
+import { horizontalFovFromVerticalFov, verticalFovFromFocalLength } from '@/src/lib/cameraMath';
 
 export type SlabPose = { x: number; z: number; yaw: number };
 export type SubjectPose = { x: number; z: number };
@@ -10,6 +10,7 @@ export type SubjectPose = { x: number; z: number };
 type GeometryViewProps = {
   distance: number;
   focalLength: number;
+  cameraAspect: number;
   stableDepth: number;
   slabs: [SlabPose, SlabPose];
   subject: SubjectPose;
@@ -55,7 +56,7 @@ function slabFootprint(pose: SlabPose, index: number): string {
     }).join(' ');
 }
 
-export function GeometryView({ distance, focalLength, stableDepth, slabs, subject, onSlabChange, onSubjectChange, onStableDepthChange }: GeometryViewProps) {
+export function GeometryView({ distance, focalLength, cameraAspect, stableDepth, slabs, subject, onSlabChange, onSubjectChange, onStableDepthChange }: GeometryViewProps) {
   const drag = useRef<{ index: number; mode: 'move' | 'rotate'; x: number; y: number; offsetX: number; offsetY: number } | null>(null);
   const draggingSubject = useRef<{ offsetX: number; offsetY: number } | null>(null);
   const draggingStableDepth = useRef(false);
@@ -64,7 +65,8 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
   const subjectY = diagramY(subject.x);
   const stableX = diagramX(stableDepth);
   const cameraX = 92 + travel * 218;
-  const halfAngle = horizontalFovFromFocalLength(focalLength) * Math.PI / 360;
+  const horizontalFov = horizontalFovFromVerticalFov(verticalFovFromFocalLength(focalLength), cameraAspect);
+  const halfAngle = horizontalFov * Math.PI / 360;
   const backgroundDistance = distance + BACKGROUND_DEPTH;
   const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * WORLD_TO_Y;
 
@@ -141,8 +143,8 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
         <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its two frustum boundaries pass the gold subject and two movable, rotated cubes.</desc>
 
         <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(AXIS_Y - frustumHalfHeight)} L ${BACKGROUND_X} ${n(AXIS_Y + frustumHalfHeight)} Z`} />
-        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y - frustumHalfHeight} />
-        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y + frustumHalfHeight} />
+        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={n(AXIS_Y - frustumHalfHeight)} />
+        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={n(AXIS_Y + frustumHalfHeight)} />
 
         <g className="diagram-camera" transform={`translate(${n(cameraX)} ${AXIS_Y})`}>
           <rect x="-34" y="-11" width="28" height="22" rx="2" />

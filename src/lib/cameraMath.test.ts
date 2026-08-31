@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeFrustum,
   focalLengthForConstantScale,
+  horizontalFovFromVerticalFov,
   horizontalFovFromFocalLength,
   interpolateCameraDistance,
   projectRayToPlane,
@@ -58,10 +59,17 @@ describe('camera math', () => {
     expect(frustum.bottom.y).toBeGreaterThan(camera.y);
   });
 
-  it('keeps the widest 11.7mm diagram frustum inside its drawing stage', () => {
-    const halfAngle = horizontalFovFromFocalLength(35 / 3) * Math.PI / 360;
-    const halfHeight = Math.tan(halfAngle) * (2 + 10.5) * 5;
-    expect(132 - halfHeight).toBeGreaterThan(32);
-    expect(132 + halfHeight).toBeLessThan(232);
+  it('matches the nominal sensor FOV at 3:2 and widens for a wider camera panel', () => {
+    const verticalFov = verticalFovFromFocalLength(35);
+    const nominal = horizontalFovFromVerticalFov(verticalFov, 1.5);
+    const widePanel = horizontalFovFromVerticalFov(verticalFov, 2.2);
+    expect(nominal).toBeCloseTo(horizontalFovFromFocalLength(35), 10);
+    expect(widePanel).toBeGreaterThan(nominal);
+
+    const camera = { x: 80, y: 130 };
+    const nominalFrustum = computeFrustum(camera, 700, 35, 1.5);
+    const wideFrustum = computeFrustum(camera, 700, 35, 2.2);
+    expect(wideFrustum.top.y).toBeLessThan(nominalFrustum.top.y);
+    expect(wideFrustum.bottom.y).toBeGreaterThan(nominalFrustum.bottom.y);
   });
 });

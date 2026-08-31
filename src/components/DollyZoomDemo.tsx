@@ -21,9 +21,10 @@ export function DollyZoomDemo() {
   const [compensated, setCompensated] = useState(true);
   const [focalLength, setFocalLength] = useState(FOCAL_LENGTH_FAR);
   const [stableDepth, setStableDepth] = useState(0);
+  const [cameraAspect, setCameraAspect] = useState(1.5);
   const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
-    { x: -2.35, z: -3.3, yaw: -0.393 },
-    { x: 2.15, z: -4.55, yaw: -0.2 },
+    { x: -2.35, z: -4.6, yaw: -0.393 },
+    { x: 1.9, z: 0.8, yaw: -0.2 },
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
   const autoFrame = useRef<number | null>(null);
@@ -121,11 +122,11 @@ export function DollyZoomDemo() {
       <section className="visual-stack">
         <div className="section-label">Camera view</div>
         <div className="camera-panel">
-          <CameraView distance={distance} verticalFov={verticalFov} slabs={slabs} subject={subject} />
+          <CameraView distance={distance} verticalFov={verticalFov} slabs={slabs} subject={subject} onAspectChange={setCameraAspect} />
         </div>
 
         <div className="section-label geometry-heading">Top-down geometry</div>
-        <GeometryView distance={distance} focalLength={focalLength} stableDepth={stableDepth} slabs={slabs} subject={subject} onStableDepthChange={updateStableDepth} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
+        <GeometryView distance={distance} focalLength={focalLength} cameraAspect={cameraAspect} stableDepth={stableDepth} slabs={slabs} subject={subject} onStableDepthChange={updateStableDepth} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
       </section>
 
       <section className="bottom-dock" aria-label="Dolly zoom controls and camera values">

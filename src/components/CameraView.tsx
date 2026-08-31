@@ -12,10 +12,11 @@ type CameraViewProps = {
   verticalFov: number;
   slabs: [SlabPose, SlabPose];
   subject: SubjectPose;
+  onAspectChange?: (aspect: number) => void;
 };
 
-function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' | 'verticalFov'>) {
-  const { camera, invalidate } = useThree();
+function CameraRig({ distance, verticalFov, onAspectChange }: Pick<CameraViewProps, 'distance' | 'verticalFov' | 'onAspectChange'>) {
+  const { camera, invalidate, size } = useThree();
 
   useEffect(() => {
     const perspective = camera as THREE.PerspectiveCamera;
@@ -25,8 +26,9 @@ function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' |
     perspective.far = 80;
     perspective.lookAt(0, 1.02, -0.65);
     perspective.updateProjectionMatrix();
+    onAspectChange?.(size.width / size.height);
     invalidate();
-  }, [camera, distance, invalidate, verticalFov]);
+  }, [camera, distance, invalidate, onAspectChange, size.height, size.width, verticalFov]);
 
   return null;
 }
@@ -88,7 +90,7 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
   );
 }
 
-export function CameraView({ distance, verticalFov, slabs, subject }: CameraViewProps) {
+export function CameraView({ distance, verticalFov, slabs, subject, onAspectChange }: CameraViewProps) {
   return (
     <div className="camera-view" aria-label="Perspective camera view of a golden sphere and two colored cubes">
       <Canvas
@@ -98,7 +100,7 @@ export function CameraView({ distance, verticalFov, slabs, subject }: CameraView
         camera={{ position: [0, 1.12, distance], fov: verticalFov, near: 0.05, far: 80 }}
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       >
-        <CameraRig distance={distance} verticalFov={verticalFov} />
+        <CameraRig distance={distance} verticalFov={verticalFov} onAspectChange={onAspectChange} />
         <ArchitecturalScene slabs={slabs} subject={subject} />
       </Canvas>
 
