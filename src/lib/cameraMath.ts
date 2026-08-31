@@ -45,6 +45,20 @@ export function projectSize(worldSize: number, focalLength: number, cameraDistan
   return worldSize * focalLength / cameraDistance;
 }
 
+/**
+ * Exact normalized-device coordinate for a point under a centered pinhole camera.
+ * `cameraToPointDepth` is positive in front of the camera and `sensorDimension`
+ * is expressed in the same units as `focalLength`.
+ */
+export function projectToNdc(
+  worldOffset: number,
+  focalLength: number,
+  cameraToPointDepth: number,
+  sensorDimension: number,
+): number {
+  return 2 * focalLength * worldOffset / (sensorDimension * cameraToPointDepth);
+}
+
 export function projectRayToPlane(camera: DiagramPoint, through: DiagramPoint, planeX: number): DiagramPoint {
   const scale = (planeX - camera.x) / (through.x - camera.x);
   return { x: planeX, y: camera.y + (through.y - camera.y) * scale };

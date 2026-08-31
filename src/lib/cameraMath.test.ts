@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import * as THREE from 'three';
 import {
   computeFrustum,
   focalLengthForConstantScale,
@@ -7,6 +8,7 @@ import {
   interpolateCameraDistance,
   projectRayToPlane,
   projectSize,
+  projectToNdc,
   verticalFovFromFocalLength,
 } from './cameraMath';
 
@@ -41,6 +43,60 @@ describe('camera math', () => {
     [6, 5, 4, 3, 2].forEach((cameraZ) => {
       expect(projectSize(1, focalLengthForConstantScale(cameraZ), cameraZ)).toBeCloseTo(farSize, 10);
     });
+  });
+
+  it('keeps every point on the selected plane exactly fixed in image coordinates', () => {
+    const stableDepth = -0.8;
+    const offsets = [-1.4, -0.5, 0, 0.72, 1.6];
+    const referenceDistance = 6 - stableDepth;
+    const referenceFocal = focalLengthForConstantScale(referenceDistance);
+
+    offsets.forEach((offset) => {
+      const reference = projectToNdc(offset, referenceFocal, referenceDistance, 36);
+      [6, 5, 4, 3, 2].forEach((cameraZ) => {
+        const depth = cameraZ - stableDepth;
+        const focal = focalLengthForConstantScale(depth);
+        expect(projectToNdc(offset, focal, depth, 36)).toBeCloseTo(reference, 12);
+      });
+    });
+  });
+
+  it('matches the exact Three.js perspective projection at every dolly position', () => {
+    const aspect = 2.4;
+    const stableDepth = -0.8;
+    const worldPoints = [
+      new THREE.Vector3(-1.25, 0.2, stableDepth),
+      new THREE.Vector3(0.35, 0.85, stableDepth),
+      new THREE.Vector3(1.1, 1.55, stableDepth),
+    ];
+
+    const projectAt = (cameraZ: number) => {
+      const focal = focalLengthForConstantScale(cameraZ - stableDepth);
+      const camera = new THREE.PerspectiveCamera(verticalFovFromFocalLength(focal), aspect, 0.05, 80);
+      camera.position.set(0, 0.85, cameraZ);
+      camera.lookAt(0, 0.85, 0);
+      camera.updateMatrixWorld(true);
+      camera.updateProjectionMatrix();
+      return worldPoints.map((point) => point.clone().project(camera));
+    };
+
+    const reference = projectAt(6);
+    [5, 4, 3, 2].forEach((cameraZ) => {
+      projectAt(cameraZ).forEach((projected, index) => {
+        expect(projected.x).toBeCloseTo(reference[index].x, 12);
+        expect(projected.y).toBeCloseTo(reference[index].y, 12);
+      });
+    });
+  });
+
+  it('widens horizontal coverage with viewport aspect while preserving vertical coverage', () => {
+    const focal = 35;
+    const vertical = projectToNdc(0.5, focal, 6, 24);
+    const horizontalAtThreeTwo = projectToNdc(0.5, focal, 6, 24 * 1.5);
+    const horizontalAtWide = projectToNdc(0.5, focal, 6, 24 * 2.2);
+
+    expect(vertical).toBe(projectToNdc(0.5, focal, 6, 24));
+    expect(Math.abs(horizontalAtWide)).toBeLessThan(Math.abs(horizontalAtThreeTwo));
   });
 
   it('changes projected subject size when focal length is frozen', () => {

@@ -20,11 +20,11 @@ function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' |
 
   useEffect(() => {
     const perspective = camera as THREE.PerspectiveCamera;
-    perspective.position.set(0, 1.12, distance);
+    perspective.position.set(0, 0.85, distance);
     perspective.fov = verticalFov;
     perspective.near = 0.05;
     perspective.far = 80;
-    perspective.lookAt(0, 1.02, -0.65);
+    perspective.lookAt(0, 0.85, 0);
     perspective.updateProjectionMatrix();
     invalidate();
   }, [camera, distance, invalidate, size.height, size.width, verticalFov]);
@@ -118,7 +118,7 @@ export function CameraView({ distance, verticalFov, slabs, subject, onAspectChan
         dpr={[1, 1.75]}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
-        camera={{ position: [0, 1.12, distance], fov: verticalFov, near: 0.05, far: 80 }}
+        camera={{ position: [0, 0.85, distance], fov: verticalFov, near: 0.05, far: 80 }}
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       >
         <CameraRig distance={distance} verticalFov={verticalFov} />
