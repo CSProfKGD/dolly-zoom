@@ -20,15 +20,17 @@ export function DollyZoomDemo() {
   const [t, setT] = useState(0);
   const [compensated, setCompensated] = useState(true);
   const [focalLength, setFocalLength] = useState(FOCAL_LENGTH_FAR);
+  const [stableDepth, setStableDepth] = useState(0);
   const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
-    { x: -3.25, z: -10.5, yaw: 0.08 },
-    { x: 3.25, z: -10.5, yaw: -0.08 },
+    { x: -2.15, z: 0.45, yaw: 0.38 },
+    { x: 2.1, z: -1.45, yaw: -0.34 },
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
   const autoFrame = useRef<number | null>(null);
   const autoDelay = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
   const distance = interpolateCameraDistance(t);
+  const stableDistance = distance - stableDepth;
   const verticalFov = verticalFovFromFocalLength(focalLength);
 
   const cancelMotion = useCallback(() => {
@@ -44,8 +46,8 @@ export function DollyZoomDemo() {
     cancelMotion();
     const nextDistance = interpolateCameraDistance(nextT);
     setT(nextT);
-    if (compensated) setFocalLength(focalLengthForConstantScale(nextDistance));
-  }, [cancelMotion, compensated]);
+    if (compensated) setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
+  }, [cancelMotion, compensated, stableDepth]);
 
   const animateFocalTo = useCallback((target: number) => {
     if (transitionFrame.current !== null) cancelAnimationFrame(transitionFrame.current);
@@ -67,8 +69,14 @@ export function DollyZoomDemo() {
       return;
     }
     setCompensated(true);
-    animateFocalTo(focalLengthForConstantScale(distance));
-  }, [animateFocalTo, cancelMotion, compensated, distance]);
+    animateFocalTo(focalLengthForConstantScale(stableDistance));
+  }, [animateFocalTo, cancelMotion, compensated, stableDistance]);
+
+  const updateStableDepth = useCallback((nextDepth: number) => {
+    cancelMotion();
+    setStableDepth(nextDepth);
+    if (compensated) setFocalLength(focalLengthForConstantScale(distance - nextDepth));
+  }, [cancelMotion, compensated, distance]);
 
   const updateSlab = useCallback((index: number, pose: SlabPose) => {
     cancelMotion();
@@ -93,7 +101,7 @@ export function DollyZoomDemo() {
           : 1 - 0.5 * easeInOutCubic((progress - 0.7) / 0.3);
         const nextDistance = interpolateCameraDistance(nextT);
         setT(nextT);
-        setFocalLength(focalLengthForConstantScale(nextDistance));
+        setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
         if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
         else autoFrame.current = null;
       };
@@ -101,7 +109,7 @@ export function DollyZoomDemo() {
     }, 450);
 
     return cancelMotion;
-  }, [cancelMotion]);
+  }, [cancelMotion, stableDepth]);
 
   return (
     <main className="demo-page">
@@ -117,13 +125,13 @@ export function DollyZoomDemo() {
         </div>
 
         <div className="section-label geometry-heading">Top-down geometry</div>
-        <GeometryView distance={distance} focalLength={focalLength} slabs={slabs} subject={subject} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
+        <GeometryView distance={distance} focalLength={focalLength} stableDepth={stableDepth} slabs={slabs} subject={subject} onStableDepthChange={updateStableDepth} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
       </section>
 
       <section className="bottom-dock" aria-label="Dolly zoom controls and camera values">
         <DollyControl
           t={t}
-          distance={distance}
+          distance={stableDistance}
           focalLength={focalLength}
           verticalFov={verticalFov}
           compensated={compensated}

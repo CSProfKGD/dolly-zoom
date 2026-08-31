@@ -10,23 +10,26 @@ export type SubjectPose = { x: number; z: number };
 type GeometryViewProps = {
   distance: number;
   focalLength: number;
+  stableDepth: number;
   slabs: [SlabPose, SlabPose];
   subject: SubjectPose;
   onSlabChange: (index: number, pose: SlabPose) => void;
   onSubjectChange: (pose: SubjectPose) => void;
+  onStableDepthChange: (depth: number) => void;
 };
 
 const AXIS_Y = 132;
 const SUBJECT_X = 420;
 const BACKGROUND_X = 738;
 const BACKGROUND_DEPTH = 10.5;
-const WORLD_TO_Y = 7.8;
+const WORLD_TO_Y = 24;
 const WORLD_TO_X = (BACKGROUND_X - SUBJECT_X) / BACKGROUND_DEPTH;
-const SUBJECT_RADIUS_WORLD = 0.85;
-const SLAB_WIDTH = 1.35;
-const SLAB_DEPTH = 0.55;
-const FAR_DISTANCE = 100 / 6;
-const NEAR_DISTANCE = 4;
+const SLAB_WIDTH = 1.22;
+const SLAB_DEPTH = 1.22;
+const FAR_DISTANCE = 6;
+const NEAR_DISTANCE = 2;
+const MIN_STABLE_DEPTH = -4;
+const MAX_STABLE_DEPTH = 1.5;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
@@ -52,18 +55,18 @@ function slabFootprint(pose: SlabPose): string {
     }).join(' ');
 }
 
-export function GeometryView({ distance, focalLength, slabs, subject, onSlabChange, onSubjectChange }: GeometryViewProps) {
+export function GeometryView({ distance, focalLength, stableDepth, slabs, subject, onSlabChange, onSubjectChange, onStableDepthChange }: GeometryViewProps) {
   const drag = useRef<{ index: number; mode: 'move' | 'rotate'; x: number; y: number } | null>(null);
   const draggingSubject = useRef(false);
+  const draggingStableDepth = useRef(false);
   const travel = (FAR_DISTANCE - distance) / (FAR_DISTANCE - NEAR_DISTANCE);
   const subjectX = diagramX(subject.z);
   const subjectY = diagramY(subject.x);
-  const cameraX = 92 + travel * 218 + (subjectX - SUBJECT_X);
+  const stableX = diagramX(stableDepth);
+  const cameraX = 92 + travel * 218;
   const halfAngle = horizontalFovFromFocalLength(focalLength) * Math.PI / 360;
   const backgroundDistance = distance + BACKGROUND_DEPTH;
-  const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * WORLD_TO_Y;
-  const subjectHalfHeight = SUBJECT_RADIUS_WORLD * WORLD_TO_Y;
-  const rayHalfHeight = subjectHalfHeight * backgroundDistance / distance;
+  const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * 5;
 
   const toSvgPoint = (event: ReactPointerEvent<SVGGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
@@ -89,8 +92,8 @@ export function GeometryView({ distance, focalLength, slabs, subject, onSlabChan
       const point = toSvgPoint(event);
       onSlabChange(index, {
         ...pose,
-        x: clamp((AXIS_Y - point.y) / WORLD_TO_Y, -7, 7),
-        z: clamp((SUBJECT_X - point.x) / WORLD_TO_X, -10.5, -3),
+        x: clamp((AXIS_Y - point.y) / WORLD_TO_Y, -4.2, 4.2),
+        z: clamp((SUBJECT_X - point.x) / WORLD_TO_X, -10.5, 10.5),
       });
     }
     drag.current = { ...active, x: event.clientX, y: event.clientY };
@@ -105,26 +108,57 @@ export function GeometryView({ distance, focalLength, slabs, subject, onSlabChan
     });
   };
 
+  const moveStableDepth = (event: ReactPointerEvent<SVGGElement>) => {
+    if (!draggingStableDepth.current || event.buttons === 0) return;
+    const point = toSvgPoint(event);
+    onStableDepthChange(clamp((SUBJECT_X - point.x) / WORLD_TO_X, MIN_STABLE_DEPTH, MAX_STABLE_DEPTH));
+  };
+
   return (
     <div className="geometry-view">
       <svg viewBox="0 0 820 264" role="img" aria-labelledby="geometry-title geometry-desc" preserveAspectRatio="xMidYMid meet" onContextMenu={(event) => event.preventDefault()}>
         <title id="geometry-title">Top-down dolly zoom geometry</title>
-        <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its frustum and subject-edge rays terminate at gray background geometry while the gold subject stays fixed. Background slabs can be moved or rotated.</desc>
+        <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its frustum and subject-edge rays pass the gold subject and two movable, rotated cubes.</desc>
 
-        <line className="optical-axis" x1="58" y1={subjectY} x2={BACKGROUND_X} y2={subjectY} />
-        <path className="frustum-fill" d={`M ${n(cameraX)} ${n(subjectY)} L ${BACKGROUND_X} ${n(subjectY - frustumHalfHeight)} L ${BACKGROUND_X} ${n(subjectY + frustumHalfHeight)} Z`} />
-        <line className="frustum-line" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY - frustumHalfHeight} />
-        <line className="frustum-line" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY + frustumHalfHeight} />
-        <line className="edge-ray" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY - rayHalfHeight} />
-        <line className="edge-ray" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY + rayHalfHeight} />
+        <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(AXIS_Y - frustumHalfHeight)} L ${BACKGROUND_X} ${n(AXIS_Y + frustumHalfHeight)} Z`} />
+        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y - frustumHalfHeight} />
+        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y + frustumHalfHeight} />
 
-        <g className="diagram-camera" transform={`translate(${n(cameraX)} ${n(subjectY)})`}>
+        <g className="diagram-camera" transform={`translate(${n(cameraX)} ${AXIS_Y})`}>
           <rect x="-34" y="-11" width="28" height="22" rx="2" />
           <line className="sensor-plane" x1="-4" y1="-8" x2="-4" y2="8" />
           <path d="M-6 -7 L-1 -4 L-1 4 L-6 7 Z" />
           <line className="projection-link" x1="-1" y1="0" x2="0" y2="0" />
         </g>
-        <text className="focal-label" x={cameraX} y={subjectY - 27} textAnchor="middle">{focalLength.toFixed(0)} mm</text>
+        <text className="focal-label" x={cameraX} y={AXIS_Y - 27} textAnchor="middle">{focalLength.toFixed(0)} mm</text>
+
+        <g
+          className="stability-plane-control"
+          role="slider"
+          tabIndex={0}
+          aria-label="Depth plane whose projected pixels remain stable"
+          aria-valuemin={MIN_STABLE_DEPTH}
+          aria-valuemax={MAX_STABLE_DEPTH}
+          aria-valuenow={Number(stableDepth.toFixed(2))}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            if (Number.isFinite(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
+            draggingStableDepth.current = true;
+          }}
+          onPointerMove={moveStableDepth}
+          onPointerUp={() => { draggingStableDepth.current = false; }}
+          onPointerCancel={() => { draggingStableDepth.current = false; }}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft') onStableDepthChange(clamp(stableDepth + 0.1, MIN_STABLE_DEPTH, MAX_STABLE_DEPTH));
+            if (event.key === 'ArrowRight') onStableDepthChange(clamp(stableDepth - 0.1, MIN_STABLE_DEPTH, MAX_STABLE_DEPTH));
+            if (event.key === 'Home') onStableDepthChange(MAX_STABLE_DEPTH);
+            if (event.key === 'End') onStableDepthChange(MIN_STABLE_DEPTH);
+          }}
+        >
+          <line className="stability-plane-hit" x1={stableX} y1="28" x2={stableX} y2="226" />
+          <line className="stability-plane-line" x1={stableX} y1="28" x2={stableX} y2="226" />
+          <circle className="stability-plane-handle" cx={stableX} cy="28" r="3.5" />
+        </g>
 
         <g
           className="subject-control"
@@ -143,15 +177,13 @@ export function GeometryView({ distance, focalLength, slabs, subject, onSlabChan
           <circle className="subject-hit" cx={subjectX} cy={subjectY} r="28" />
           <circle className="subject-shape" cx={subjectX} cy={subjectY} r="15" />
         </g>
-        <line className="background-plane-svg" x1={BACKGROUND_X} y1="33" x2={BACKGROUND_X} y2="231" />
-
         {slabs.map((slab, index) => (
           <g
             key={index}
             className="slab-control"
             role="button"
             tabIndex={0}
-            aria-label={`${index === 0 ? 'Left' : 'Right'} background slab. Drag to move; hold both mouse buttons while dragging to rotate.`}
+            aria-label={`${index === 0 ? 'Teal' : 'Purple'} cube. Drag to move; hold both mouse buttons while dragging to rotate.`}
             onPointerDown={(event) => beginSlabDrag(index, event)}
             onPointerMove={(event) => moveSlab(index, event)}
             onPointerUp={() => { drag.current = null; }}
@@ -162,15 +194,11 @@ export function GeometryView({ distance, focalLength, slabs, subject, onSlabChan
           </g>
         ))}
 
-        <line className="distance-line" x1={cameraX} y1="220" x2={subjectX} y2="220" />
+        <line className="distance-line" x1={cameraX} y1="220" x2={stableX} y2="220" />
         <line className="distance-tick" x1={cameraX} y1="215" x2={cameraX} y2="225" />
-        <line className="distance-tick" x1={subjectX} y1="215" x2={subjectX} y2="225" />
-        <text className="distance-label" x={(cameraX + subjectX) / 2} y="213" textAnchor="middle">Z = {distance.toFixed(2)} m</text>
+        <line className="distance-tick" x1={stableX} y1="215" x2={stableX} y2="225" />
+        <text className="distance-label" x={stableX - 4} y="240" textAnchor="end">Z = {(distance - stableDepth).toFixed(2)} m</text>
 
-        <g className="equation-lock" transform="translate(442 196)">
-          <text className="equation-text">f / Z = constant</text>
-          <text className="equation-caption" y="14">Constant projected size</text>
-        </g>
       </svg>
     </div>
   );

@@ -68,10 +68,11 @@ button { color: inherit; }
 .camera-view::after {
   content: "";
   position: absolute;
-  inset: auto 0 0;
-  height: 18%;
+  inset: 0;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent, #000);
+  background:
+    radial-gradient(ellipse at 50% 56%, transparent 56%, rgba(0,0,0,.46) 100%),
+    linear-gradient(to bottom, transparent 86%, rgba(0,0,0,.32));
 }
 
 .subject-invariant {
@@ -89,26 +90,11 @@ button { color: inherit; }
 .bracket-tr { top: 0; right: 0; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); }
 .bracket-bl { bottom: 0; left: 0; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); }
 .bracket-br { bottom: 0; right: 0; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); }
-.subject-invariant span {
-  position: absolute;
-  left: 50%;
-  bottom: -24px;
-  transform: translateX(-50%);
-  color: rgba(246, 201, 39, .42);
-  font-size: 8px;
-  font-weight: 610;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 .geometry-heading { margin-top: clamp(46px, 5vw, 68px); }
 .geometry-view { height: clamp(255px, 25vw, 330px); }
 .geometry-view svg { display: block; width: 100%; height: 100%; }
-.optical-axis { stroke: rgba(245,245,247,.18); stroke-width: 1; stroke-dasharray: 5 7; vector-effect: non-scaling-stroke; }
 .frustum-fill { fill: rgba(53,200,237,.006); }
 .frustum-line { stroke: var(--cyan); stroke-width: 1.25; opacity: .82; vector-effect: non-scaling-stroke; }
-.edge-ray { stroke: rgba(209,219,223,.38); stroke-width: .85; vector-effect: non-scaling-stroke; }
 .diagram-camera rect, .diagram-camera path, .diagram-camera .projection-link { fill: #000; stroke: var(--cyan); stroke-width: 1.35; vector-effect: non-scaling-stroke; }
 .diagram-camera .sensor-plane { stroke: rgba(53,200,237,.34); stroke-width: .8; vector-effect: non-scaling-stroke; }
 .subject-shape { fill: var(--gold); filter: drop-shadow(0 0 5px rgba(246,201,39,.22)); }
@@ -116,18 +102,20 @@ button { color: inherit; }
 .subject-control:active { cursor: grabbing; }
 .subject-hit { fill: transparent; pointer-events: all; }
 .subject-control:focus-visible .subject-shape { stroke: rgba(255,255,255,.9); stroke-width: 1.4; }
-.background-plane-svg { stroke: rgba(245,245,247,.48); stroke-width: 1.25; vector-effect: non-scaling-stroke; }
+.stability-plane-control { cursor: ew-resize; touch-action: none; outline: none; }
+.stability-plane-hit { stroke: transparent; stroke-width: 20; pointer-events: stroke; vector-effect: non-scaling-stroke; }
+.stability-plane-line { stroke: rgba(53,200,237,.42); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.stability-plane-handle { fill: var(--cyan); opacity: .72; }
+.stability-plane-control:focus-visible .stability-plane-line { stroke: rgba(255,255,255,.86); stroke-width: 1.5; }
 .slab-control { cursor: grab; touch-action: none; outline: none; }
 .slab-control:active { cursor: grabbing; }
 .slab-hit { fill: transparent; stroke: transparent; stroke-width: 16; pointer-events: all; vector-effect: non-scaling-stroke; }
-.background-object-svg { fill: #777d80; stroke: rgba(245,245,247,.42); stroke-width: 1; opacity: .8; pointer-events: none; vector-effect: non-scaling-stroke; }
+.background-object-svg { fill: #18b8b0; stroke: rgba(126,244,238,.8); stroke-width: 1; opacity: .82; pointer-events: none; vector-effect: non-scaling-stroke; }
 .slab-control:focus-visible .background-object-svg { stroke: var(--cyan); stroke-width: 1.7; }
-.background-object-svg.slab-1 { fill: #555b5e; }
+.background-object-svg.slab-1 { fill: #a45ac4; stroke: rgba(224,174,245,.82); }
 .distance-line, .distance-tick { stroke: rgba(245,245,247,.28); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .distance-label { fill: rgba(245,245,247,.55); font-size: 9px; font-variant-numeric: tabular-nums; }
 .focal-label { fill: rgba(53,200,237,.74); font-size: 9px; font-variant-numeric: tabular-nums; }
-.equation-text { fill: rgba(245,245,247,.68); font-family: Georgia, serif; font-size: 12px; font-style: italic; }
-.equation-caption { fill: rgba(245,245,247,.3); font-size: 7px; letter-spacing: .08em; text-transform: uppercase; }
 
 .bottom-dock {
   width: 100%;
@@ -137,10 +125,13 @@ button { color: inherit; }
 .control-topline { margin-bottom: 10px; }
 .control-label { color: var(--muted); font-size: 9px; font-weight: 650; letter-spacing: .18em; text-transform: uppercase; }
 .dolly-switch {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: 72px 21px 24px;
   align-items: center;
-  gap: 8px;
-  padding: 4px 0;
+  column-gap: 8px;
+  width: 133px;
+  height: 32px;
+  padding: 0;
   border: 0;
   color: rgba(245,245,247,.5);
   font-size: 11px;
@@ -149,6 +140,7 @@ button { color: inherit; }
   cursor: pointer;
   transition: color 180ms ease;
 }
+.switch-label { text-align: left; white-space: nowrap; }
 .dolly-switch:hover { color: rgba(245,245,247,.85); }
 .dolly-switch:focus-visible { outline: 1px solid var(--cyan); outline-offset: 5px; border-radius: 2px; }
 .switch-glyph { position: relative; width: 21px; height: 12px; border: 1px solid rgba(245,245,247,.28); border-radius: 99px; }
@@ -156,7 +148,7 @@ button { color: inherit; }
 .dolly-switch.is-on { color: rgba(245,245,247,.72); }
 .dolly-switch.is-on .switch-glyph { border-color: rgba(53,200,237,.55); background: rgba(53,200,237,.12); }
 .dolly-switch.is-on .switch-glyph i { transform: translateX(9px); background: var(--cyan); }
-.switch-state { min-width: 18px; color: rgba(245,245,247,.3); font-size: 8px; font-weight: 660; letter-spacing: .08em; text-transform: uppercase; }
+.switch-state { width: 24px; color: rgba(245,245,247,.3); font-size: 8px; font-weight: 660; letter-spacing: .08em; text-align: left; text-transform: uppercase; }
 .dolly-switch.is-on .switch-state { color: rgba(53,200,237,.6); }
 .slider-wrap { position: relative; }
 .slider-wrap input { width: 100%; height: 21px; margin: 0; appearance: none; -webkit-appearance: none; background: transparent; cursor: ew-resize; }
@@ -189,7 +181,7 @@ button { color: inherit; }
   .hero-block h1 { font-size: 43px; }
   .subtitle { font-size: 15px; }
   .camera-view { height: 290px; }
-  .control-footer { align-items: flex-start; gap: 14px; }
+  .control-footer { align-items: center; gap: 14px; }
   .dolly-switch { font-size: 10px; }
   .live-readout { font-size: 11px; gap: 7px; }
 }

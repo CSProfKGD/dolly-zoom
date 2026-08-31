@@ -56,7 +56,7 @@ export function DollyControl({
           aria-checked={compensated}
           onClick={onToggleCompensation}
         >
-          <span>Dolly Zoom</span>
+          <span className="switch-label">Dolly Zoom</span>
           <span className="switch-glyph" aria-hidden="true"><i /></span>
           <span className="switch-state">{compensated ? 'On' : 'Off'}</span>
         </button>

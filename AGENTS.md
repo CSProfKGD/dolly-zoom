@@ -7,8 +7,9 @@ This is a premium single-page camera-optics explainer. Preserve the sparse Apple
 ## Interaction model
 
 - A single bottom scrubber owns camera travel from `Far / Tele` to `Near / Wide`.
-- The gold subject begins at world `x = 0, z = 0` and can be dragged on the top-down floor plane. The camera tracks it so compensation continues to preserve its projected size.
-- The two gray architectural slab footprints use their real scene orientation. A one-button drag translates a slab; holding both mouse buttons while dragging rotates it. Both views update from shared state.
+- The gold subject begins at world `x = 0, z = 0` and can be dragged independently on the top-down floor plane.
+- The cyan stable-depth plane is independently draggable and defines the depth whose projected pixels remain stable.
+- The teal and purple cube footprints use their real scene orientation. A one-button drag translates a cube; holding both mouse buttons while dragging rotates it. Both views update from shared state.
 - “Freeze focal length” holds the current focal length while the camera continues moving.
 - Pointer, touch, trackpad, and arrow-key input all use the native range control.
 - The one-shot autoplay cancels on any explicit interaction and is disabled for reduced motion.

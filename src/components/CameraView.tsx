@@ -14,19 +14,19 @@ type CameraViewProps = {
   subject: SubjectPose;
 };
 
-function CameraRig({ distance, verticalFov, subject }: CameraViewProps) {
+function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' | 'verticalFov'>) {
   const { camera, invalidate } = useThree();
 
   useEffect(() => {
     const perspective = camera as THREE.PerspectiveCamera;
-    perspective.position.set(subject.x, 0.85, subject.z + distance);
+    perspective.position.set(0, 0.85, distance);
     perspective.fov = verticalFov;
     perspective.near = 0.05;
     perspective.far = 80;
-    perspective.lookAt(subject.x, 0.85, subject.z);
+    perspective.lookAt(0, 0.85, 0);
     perspective.updateProjectionMatrix();
     invalidate();
-  }, [camera, distance, invalidate, subject.x, subject.z, verticalFov]);
+  }, [camera, distance, invalidate, verticalFov]);
 
   return null;
 }
@@ -47,7 +47,7 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
         shadow-bias={-0.0003}
       />
       <directionalLight position={[7, 5, -2]} intensity={1.7} color="#bcd8e4" />
-      <pointLight position={[0, 4.5, 3]} intensity={6.5} distance={16} color="#ffd864" />
+      <rectAreaLight position={[0, 5.5, 4]} rotation={[-Math.PI / 2.8, 0, 0]} width={14} height={5} intensity={2.2} color="#dce8ed" />
 
       <mesh position={[subject.x, 0.85, subject.z]} castShadow>
         <sphereGeometry args={[0.85, 96, 64]} />
@@ -60,18 +60,26 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
         />
       </mesh>
 
-      <mesh position={[slabs[0].x, 3.4, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.35, 6.8, 0.55]} />
-        <meshStandardMaterial color="#a4adb0" roughness={0.48} metalness={0.18} />
+      <mesh position={[slabs[0].x, 0.61, slabs[0].z]} rotation={[0.08, slabs[0].yaw, 0.06]} castShadow receiveShadow>
+        <boxGeometry args={[1.22, 1.22, 1.22]} />
+        <meshPhysicalMaterial color="#18b8b0" roughness={0.2} metalness={0.18} clearcoat={0.72} clearcoatRoughness={0.14} />
       </mesh>
-      <mesh position={[slabs[1].x, 3.4, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.35, 6.8, 0.55]} />
-        <meshStandardMaterial color="#747d82" roughness={0.37} metalness={0.28} />
+      <mesh position={[slabs[1].x, 0.61, slabs[1].z]} rotation={[-0.06, slabs[1].yaw, -0.05]} castShadow receiveShadow>
+        <boxGeometry args={[1.22, 1.22, 1.22]} />
+        <meshPhysicalMaterial color="#a45ac4" roughness={0.2} metalness={0.14} clearcoat={0.76} clearcoatRoughness={0.13} />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, -7]} receiveShadow>
-        <planeGeometry args={[34, 38]} />
-        <meshStandardMaterial color="#050708" roughness={0.72} metalness={0.2} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, -15]} receiveShadow>
+        <planeGeometry args={[80, 90]} />
+        <meshPhysicalMaterial
+          color="#24292c"
+          emissive="#07090a"
+          emissiveIntensity={0.42}
+          roughness={0.27}
+          metalness={0.42}
+          clearcoat={0.82}
+          clearcoatRoughness={0.2}
+        />
       </mesh>
     </>
   );
@@ -79,22 +87,21 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
 
 export function CameraView({ distance, verticalFov, slabs, subject }: CameraViewProps) {
   return (
-    <div className="camera-view" aria-label="Perspective camera view of a fixed golden sphere and two architectural slabs">
+    <div className="camera-view" aria-label="Perspective camera view of a fixed golden sphere and two glossy colored cubes">
       <Canvas
         dpr={[1, 1.75]}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
-        camera={{ position: [subject.x, 0.85, subject.z + distance], fov: verticalFov, near: 0.05, far: 80 }}
+        camera={{ position: [0, 0.85, distance], fov: verticalFov, near: 0.05, far: 80 }}
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       >
-        <CameraRig distance={distance} verticalFov={verticalFov} subject={subject} slabs={slabs} />
+        <CameraRig distance={distance} verticalFov={verticalFov} />
         <ArchitecturalScene slabs={slabs} subject={subject} />
       </Canvas>
 
       <div className="subject-invariant" aria-hidden="true">
         <i className="bracket bracket-tl" /><i className="bracket bracket-tr" />
         <i className="bracket bracket-bl" /><i className="bracket bracket-br" />
-        <span>Subject size · fixed</span>
       </div>
     </div>
   );

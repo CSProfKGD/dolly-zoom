@@ -2,12 +2,12 @@
 
 ## Camera conventions
 
-- World optical axis is the Three.js Z axis. The golden subject begins at `x = 0, z = 0` and can translate on the floor plane; the camera tracks it at the displayed relative Z distance.
+- World optical axis is the Three.js Z axis. The golden subject begins at `x = 0, z = 0` and can translate independently on the floor plane.
 - Dolly parameter: `t ∈ [0, 1]`, with `Z(t) = 16.6667 - 12.6667t` metres.
-- Subject compensation is `f = 6Z`, giving 100 mm at 16.67 m, 62 mm at the 10.33 m midpoint, and 24 mm at 4 m.
+- Stable-plane compensation is `f = Z × 35 / 6`, giving 35 mm at 6 m, 23.3 mm at the 4 m midpoint, and 11.7 mm at 2 m.
 - Sensor dimensions are 36 × 24 mm. Camera-view FOV is vertical: `2 atan(24 / 2f)`. The top-down frustum uses the 36 mm horizontal sensor dimension.
-- The foreground sphere has diameter 1.7 world units at `z = 0`. Two 6.8-unit architectural slabs begin at `z = -10.5`, symmetrically offset left and right. The floor is matte-black with only soft contact shadowing.
-- Compensation preserves `f / cameraZ = 6`. The slabs can translate and rotate on the ground plane without changing the optical model.
+- The foreground sphere has diameter 1.7 world units at `z = 0`. Two compact glossy colored cubes sit nearby, one forward and one behind the sphere. The floor is a restrained glossy black stage.
+- Compensation preserves `f / Z = 35 / 6` at the independently selected stable-depth plane. Cubes can translate with one-button drag and rotate while both mouse buttons are held.
 - Projected size follows the pinhole relationship `imageSize = worldSize × f / distance`. Never scale scene objects to simulate compensation.
 
 ## Visual system
