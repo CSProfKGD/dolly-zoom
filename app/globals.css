@@ -96,7 +96,16 @@ button { color: inherit; }
 .background-object-svg.slab-1 { fill: #76538d; stroke: rgba(204,175,220,.7); }
 .distance-line, .distance-tick { stroke: rgba(245,245,247,.28); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .distance-label { fill: rgba(245,245,247,.62); font-size: 13px; font-variant-numeric: tabular-nums; }
+.focal-control { cursor: default; }
 .focal-label { fill: rgba(53,200,237,.82); font-size: 13px; font-variant-numeric: tabular-nums; }
+.focal-slider-shell { opacity: 0; pointer-events: none; transition: opacity 140ms ease; cursor: ew-resize; outline: none; }
+.focal-control:hover .focal-slider-shell,
+.focal-control:focus-within .focal-slider-shell,
+.focal-control.is-open .focal-slider-shell { opacity: 1; pointer-events: auto; }
+.focal-slider-hit { fill: transparent; }
+.focal-slider-track { stroke: rgba(53,200,237,.38); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.focal-slider-thumb { fill: #071015; stroke: rgba(223,249,255,.9); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.focal-slider-shell:focus-visible .focal-slider-hit { stroke: rgba(53,200,237,.7); stroke-width: 1; vector-effect: non-scaling-stroke; }
 
 .bottom-dock {
   width: 100%;

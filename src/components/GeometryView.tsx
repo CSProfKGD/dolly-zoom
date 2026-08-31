@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
-import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
+import { useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
 import { horizontalFovFromVerticalFov, verticalFovFromFocalLength } from '@/src/lib/cameraMath';
 
 export type SlabPose = { x: number; z: number; yaw: number };
@@ -18,9 +18,13 @@ type GeometryViewProps = {
   onSlabChange: (index: number, pose: SlabPose) => void;
   onSubjectChange: (pose: SubjectPose) => void;
   onStableDepthChange: (depth: number) => void;
+  onFocalLengthChange: (focalLength: number) => void;
 };
 
 const AXIS_Y = 132;
+const FOCAL_MIN = 12;
+const FOCAL_MAX = 70;
+const FOCAL_TRACK_HALF_WIDTH = 52;
 const SUBJECT_X = 420;
 const BACKGROUND_X = 738;
 const BACKGROUND_DEPTH = 10.5;
@@ -53,13 +57,53 @@ function slabFootprint(pose: SlabPose): string {
     }).join(' ');
 }
 
-export function GeometryView({ distance, focalLength, cameraAspect, stableDepth, slabs, subject, onSlabChange, onSubjectChange, onStableDepthChange }: GeometryViewProps) {
+export function GeometryView({ distance, focalLength, cameraAspect, stableDepth, slabs, subject, onSlabChange, onSubjectChange, onStableDepthChange, onFocalLengthChange }: GeometryViewProps) {
   const drag = useRef<{ index: number; mode: 'move' | 'rotate'; x: number; y: number; offsetX: number; offsetY: number } | null>(null);
   const draggingSubject = useRef<{ offsetX: number; offsetY: number } | null>(null);
   const draggingStableDepth = useRef(false);
+  const draggingFocal = useRef(false);
+  const [focalControlOpen, setFocalControlOpen] = useState(false);
   const subjectX = diagramX(subject.z);
   const subjectY = diagramY(subject.x);
   const stableX = diagramX(stableDepth);
+  const focalProgress = Math.min(1, Math.max(0, (focalLength - FOCAL_MIN) / (FOCAL_MAX - FOCAL_MIN)));
+  const focalThumbX = -FOCAL_TRACK_HALF_WIDTH + focalProgress * FOCAL_TRACK_HALF_WIDTH * 2;
+
+  const updateFocalFromPointer = (event: ReactPointerEvent<SVGGElement>) => {
+    const point = toSvgPoint(event);
+    const trackStart = cameraX - 20 - FOCAL_TRACK_HALF_WIDTH;
+    const progress = Math.min(1, Math.max(0, (point.x - trackStart) / (FOCAL_TRACK_HALF_WIDTH * 2)));
+    onFocalLengthChange(FOCAL_MIN + progress * (FOCAL_MAX - FOCAL_MIN));
+  };
+
+  const beginFocalDrag = (event: ReactPointerEvent<SVGGElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    draggingFocal.current = true;
+    setFocalControlOpen(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+    updateFocalFromPointer(event);
+  };
+
+  const moveFocal = (event: ReactPointerEvent<SVGGElement>) => {
+    if (draggingFocal.current) updateFocalFromPointer(event);
+  };
+
+  const endFocalDrag = (event: ReactPointerEvent<SVGGElement>) => {
+    draggingFocal.current = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
+  const stepFocal = (event: ReactKeyboardEvent<SVGGElement>) => {
+    let next = focalLength;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next -= 0.5;
+    else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next += 0.5;
+    else if (event.key === 'Home') next = FOCAL_MIN;
+    else if (event.key === 'End') next = FOCAL_MAX;
+    else return;
+    event.preventDefault();
+    onFocalLengthChange(Math.min(FOCAL_MAX, Math.max(FOCAL_MIN, next)));
+  };
   const cameraX = diagramX(distance);
   const horizontalFov = cameraAspect === null ? 0 : horizontalFovFromVerticalFov(verticalFovFromFocalLength(focalLength), cameraAspect);
   const halfAngle = horizontalFov * Math.PI / 360;
@@ -69,11 +113,13 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
   const toSvgPoint = (event: ReactPointerEvent<SVGGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
     if (!svg) return { x: 0, y: 0 };
-    const rect = svg.getBoundingClientRect();
-    return {
-      x: (event.clientX - rect.left) * 820 / rect.width,
-      y: 24 + (event.clientY - rect.top) * 216 / rect.height,
-    };
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return { x: 0, y: 0 };
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const local = point.matrixTransform(matrix.inverse());
+    return { x: local.x, y: local.y };
   };
 
   const beginSlabDrag = (index: number, event: ReactPointerEvent<SVGGElement>) => {
@@ -151,7 +197,44 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
           <path d="M-6 -7 L-1 -4 L-1 4 L-6 7 Z" />
           <line className="projection-link" x1="-1" y1="0" x2="0" y2="0" />
         </g>
-        <text className="focal-label" x={cameraX - 20} y={AXIS_Y - 31} textAnchor="middle">f = {focalLength.toFixed(1)} mm</text>
+        <g
+          className={`focal-control ${focalControlOpen ? 'is-open' : ''}`}
+          transform={`translate(${n(cameraX - 20)} ${AXIS_Y - 31})`}
+          onPointerEnter={() => setFocalControlOpen(true)}
+          onPointerLeave={(event) => {
+            if (event.pointerType === 'mouse') setFocalControlOpen(false);
+          }}
+        >
+          <text
+            className="focal-label"
+            x="0"
+            y="0"
+            textAnchor="middle"
+            onClick={() => setFocalControlOpen((open) => !open)}
+          >
+            f = {focalLength.toFixed(1)} mm
+          </text>
+          <g
+            className="focal-slider-shell"
+            role="slider"
+            aria-label="Focal length"
+            aria-valuemin={FOCAL_MIN}
+            aria-valuemax={FOCAL_MAX}
+            aria-valuenow={Number(focalLength.toFixed(1))}
+            tabIndex={0}
+            onFocus={() => setFocalControlOpen(true)}
+            onBlur={() => setFocalControlOpen(false)}
+            onKeyDown={stepFocal}
+            onPointerDown={beginFocalDrag}
+            onPointerMove={moveFocal}
+            onPointerUp={endFocalDrag}
+            onPointerCancel={endFocalDrag}
+          >
+            <rect className="focal-slider-hit" x={-FOCAL_TRACK_HALF_WIDTH - 6} y="-32" width={FOCAL_TRACK_HALF_WIDTH * 2 + 12} height="24" />
+            <line className="focal-slider-track" x1={-FOCAL_TRACK_HALF_WIDTH} y1="-20" x2={FOCAL_TRACK_HALF_WIDTH} y2="-20" />
+            <circle className="focal-slider-thumb" cx={focalThumbX} cy="-20" r="5" />
+          </g>
+        </g>
 
         <g
           className="stability-plane-control"

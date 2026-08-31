@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import {
+  CAMERA_DISTANCE_FAR,
+  CAMERA_DISTANCE_NEAR,
+  FOCAL_LENGTH_FAR,
   computeFrustum,
   focalLengthForConstantScale,
   horizontalFovFromVerticalFov,
@@ -14,15 +17,15 @@ import {
 
 describe('camera math', () => {
   it('interpolates the dolly endpoints and midpoint', () => {
-    expect(interpolateCameraDistance(0)).toBe(6);
-    expect(interpolateCameraDistance(0.5)).toBe(4);
-    expect(interpolateCameraDistance(1)).toBe(2);
+    expect(interpolateCameraDistance(0)).toBe(CAMERA_DISTANCE_FAR);
+    expect(interpolateCameraDistance(0.5)).toBe((CAMERA_DISTANCE_FAR + CAMERA_DISTANCE_NEAR) / 2);
+    expect(interpolateCameraDistance(1)).toBe(CAMERA_DISTANCE_NEAR);
   });
 
   it('compensates focal length with a constant f/Z ratio', () => {
-    expect(focalLengthForConstantScale(6)).toBeCloseTo(35, 8);
-    expect(focalLengthForConstantScale(4)).toBeCloseTo(23.333333, 5);
-    expect(focalLengthForConstantScale(2)).toBeCloseTo(35 / 3, 8);
+    expect(focalLengthForConstantScale(CAMERA_DISTANCE_FAR)).toBeCloseTo(FOCAL_LENGTH_FAR, 8);
+    expect(focalLengthForConstantScale((CAMERA_DISTANCE_FAR + CAMERA_DISTANCE_NEAR) / 2)).toBeCloseTo(FOCAL_LENGTH_FAR * (CAMERA_DISTANCE_FAR + CAMERA_DISTANCE_NEAR) / (2 * CAMERA_DISTANCE_FAR), 8);
+    expect(focalLengthForConstantScale(CAMERA_DISTANCE_NEAR)).toBeCloseTo(FOCAL_LENGTH_FAR * CAMERA_DISTANCE_NEAR / CAMERA_DISTANCE_FAR, 8);
   });
 
   it('derives vertical FOV from a 24mm sensor height', () => {

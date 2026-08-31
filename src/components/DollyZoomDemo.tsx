@@ -112,6 +112,12 @@ export function DollyZoomDemo() {
     if (compensated) setFocalLength(compensatedFocalLength(distance, nextDepth));
   }, [cancelMotion, compensated, distance]);
 
+  const updateFocalLength = useCallback((nextFocalLength: number) => {
+    cancelMotion();
+    setCompensated(false);
+    setFocalLength(nextFocalLength);
+  }, [cancelMotion]);
+
   const updateSlab = useCallback((index: number, pose: SlabPose) => {
     cancelMotion();
     setSlabs((current) => current.map((slab, slabIndex) => slabIndex === index ? pose : slab) as [SlabPose, SlabPose]);
@@ -144,7 +150,7 @@ export function DollyZoomDemo() {
         </div>
 
         <div className="section-label geometry-heading">Top-down geometry</div>
-        <GeometryView distance={distance} focalLength={focalLength} cameraAspect={cameraAspect} stableDepth={stableDepth} slabs={slabs} subject={subject} onStableDepthChange={updateStableDepth} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
+        <GeometryView distance={distance} focalLength={focalLength} cameraAspect={cameraAspect} stableDepth={stableDepth} slabs={slabs} subject={subject} onStableDepthChange={updateStableDepth} onFocalLengthChange={updateFocalLength} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
       </section>
 
       <section className="bottom-dock" aria-label="Dolly zoom controls and camera values">
