@@ -47,7 +47,7 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
         shadow-bias={-0.0003}
       />
       <directionalLight position={[7, 5, -2]} intensity={1.7} color="#bcd8e4" />
-      <rectAreaLight position={[0, 5.5, 4]} rotation={[-Math.PI / 2.8, 0, 0]} width={14} height={5} intensity={2.2} color="#dce8ed" />
+      <rectAreaLight position={[0, 5.5, 4]} rotation={[-Math.PI / 2.8, 0, 0]} width={14} height={5} intensity={0.65} color="#dce8ed" />
 
       <mesh position={[subject.x, 0.85, subject.z]} castShadow>
         <sphereGeometry args={[0.85, 96, 64]} />
@@ -72,13 +72,13 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, -15]} receiveShadow>
         <planeGeometry args={[80, 90]} />
         <meshPhysicalMaterial
-          color="#24292c"
-          emissive="#07090a"
-          emissiveIntensity={0.42}
-          roughness={0.27}
-          metalness={0.42}
-          clearcoat={0.82}
-          clearcoatRoughness={0.2}
+          color="#111518"
+          emissive="#020304"
+          emissiveIntensity={0.1}
+          roughness={0.34}
+          metalness={0.3}
+          clearcoat={0.68}
+          clearcoatRoughness={0.28}
         />
       </mesh>
     </>
