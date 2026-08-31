@@ -109,8 +109,8 @@ button { color: inherit; }
 .frustum-fill { fill: rgba(53,200,237,.006); }
 .frustum-line { stroke: var(--cyan); stroke-width: 1.25; opacity: .82; vector-effect: non-scaling-stroke; }
 .edge-ray { stroke: rgba(209,219,223,.38); stroke-width: .85; vector-effect: non-scaling-stroke; }
-.diagram-camera rect, .diagram-camera path { fill: #000; stroke: var(--cyan); stroke-width: 1.45; vector-effect: non-scaling-stroke; }
-.diagram-camera circle { fill: var(--cyan); }
+.diagram-camera rect, .diagram-camera path, .diagram-camera .projection-link { fill: #000; stroke: var(--cyan); stroke-width: 1.35; vector-effect: non-scaling-stroke; }
+.diagram-camera .sensor-plane { stroke: rgba(53,200,237,.34); stroke-width: .8; vector-effect: non-scaling-stroke; }
 .subject-shape { fill: var(--gold); filter: drop-shadow(0 0 5px rgba(246,201,39,.22)); }
 .subject-control { cursor: grab; touch-action: none; outline: none; }
 .subject-control:active { cursor: grabbing; }

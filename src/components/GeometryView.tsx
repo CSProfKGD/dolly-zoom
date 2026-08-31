@@ -118,10 +118,11 @@ export function GeometryView({ distance, focalLength, slabs, subject, onSlabChan
         <line className="edge-ray" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY - rayHalfHeight} />
         <line className="edge-ray" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY + rayHalfHeight} />
 
-        <g className="diagram-camera" transform={`translate(${n(cameraX - 28)} ${n(subjectY - 17)})`}>
-          <rect width="43" height="34" rx="5" />
-          <path d="M43 9 L55 4 L55 30 L43 25 Z" />
-          <circle cx="20" cy="17" r="2.5" />
+        <g className="diagram-camera" transform={`translate(${n(cameraX)} ${n(subjectY)})`}>
+          <rect x="-34" y="-11" width="28" height="22" rx="2" />
+          <line className="sensor-plane" x1="-4" y1="-8" x2="-4" y2="8" />
+          <path d="M-6 -7 L-1 -4 L-1 4 L-6 7 Z" />
+          <line className="projection-link" x1="-1" y1="0" x2="0" y2="0" />
         </g>
         <text className="focal-label" x={cameraX} y={subjectY - 27} textAnchor="middle">{focalLength.toFixed(0)} mm</text>
 
