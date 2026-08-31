@@ -75,21 +75,6 @@ button { color: inherit; }
     linear-gradient(to bottom, transparent 86%, rgba(0,0,0,.32));
 }
 
-.subject-invariant {
-  position: absolute;
-  z-index: 3;
-  left: 50%;
-  top: 50%;
-  height: 43%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-.subject-invariant .bracket { position: absolute; width: 17px; height: 17px; opacity: .58; }
-.bracket-tl { top: 0; left: 0; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
-.bracket-tr { top: 0; right: 0; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); }
-.bracket-bl { bottom: 0; left: 0; border-bottom: 1px solid var(--gold); border-left: 1px solid var(--gold); }
-.bracket-br { bottom: 0; right: 0; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); }
 .geometry-heading { margin-top: clamp(46px, 5vw, 68px); }
 .geometry-view { height: clamp(255px, 25vw, 330px); }
 .geometry-view svg { display: block; width: 100%; height: 100%; }
@@ -167,7 +152,6 @@ button { color: inherit; }
   .hero-block h1 { font-size: 48px; }
   .subtitle { margin-top: 13px; font-size: 16px; }
   .camera-view { height: 330px; }
-  .subject-invariant { height: 43%; }
   .geometry-heading { margin-top: 42px; }
   .geometry-view { height: 250px; }
   .bottom-dock { margin-top: 42px; }
@@ -179,11 +163,19 @@ button { color: inherit; }
     padding-top: clamp(20px, 3vh, 34px);
     padding-bottom: clamp(20px, 3vh, 34px);
   }
-  .hero-block { margin-bottom: clamp(22px, 3vh, 36px); }
-  .camera-view { height: clamp(220px, 32vh, 390px); }
-  .geometry-heading { margin-top: clamp(22px, 3vh, 36px); }
-  .geometry-view { height: clamp(150px, 19vh, 220px); }
-  .bottom-dock { margin-top: clamp(20px, 2.8vh, 34px); }
+  .hero-block { margin-bottom: clamp(22px, 2.5vh, 34px); }
+  .camera-view { height: clamp(260px, 38vh, 500px); }
+  .geometry-heading { margin-top: clamp(20px, 2.2vh, 30px); }
+  .geometry-view { height: clamp(180px, 22vh, 300px); }
+  .bottom-dock { margin-top: clamp(18px, 2.2vh, 30px); }
+}
+
+@media (min-width: 761px) and (max-height: 900px) {
+  .hero-block { margin-bottom: clamp(20px, 2.5vh, 28px); }
+  .camera-view { height: clamp(220px, 32vh, 300px); }
+  .geometry-heading { margin-top: clamp(18px, 2.2vh, 24px); }
+  .geometry-view { height: clamp(150px, 19vh, 190px); }
+  .bottom-dock { margin-top: clamp(16px, 2vh, 22px); }
 }
 
 @media (max-width: 460px) {
