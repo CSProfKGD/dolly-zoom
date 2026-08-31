@@ -134,7 +134,7 @@ export function DollyZoomDemo() {
     <main className="demo-page">
       <header className="hero-block">
         <h1>Dolly Zoom</h1>
-        <p className="subtitle">Same Subject. Different Perspective.</p>
+        <p className="subtitle">Zoom In. Pull Back.</p>
       </header>
 
       <section className="visual-stack">
