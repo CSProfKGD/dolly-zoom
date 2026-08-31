@@ -29,7 +29,6 @@ export function DollyZoomDemo() {
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
   const autoFrame = useRef<number | null>(null);
-  const autoDelay = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
   const tRef = useRef(t);
   const distance = interpolateCameraDistance(t);
@@ -37,10 +36,8 @@ export function DollyZoomDemo() {
   const verticalFov = verticalFovFromFocalLength(focalLength);
 
   const cancelMotion = useCallback(() => {
-    if (autoDelay.current !== null) window.clearTimeout(autoDelay.current);
     if (autoFrame.current !== null) cancelAnimationFrame(autoFrame.current);
     if (transitionFrame.current !== null) cancelAnimationFrame(transitionFrame.current);
-    autoDelay.current = null;
     autoFrame.current = null;
     transitionFrame.current = null;
     setIsPlaying(false);
@@ -122,12 +119,8 @@ export function DollyZoomDemo() {
   }, [t]);
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    autoDelay.current = window.setTimeout(runAutoplay, 450);
-
     return cancelMotion;
-  }, [cancelMotion, runAutoplay]);
+  }, [cancelMotion]);
 
   return (
     <main className="demo-page">
