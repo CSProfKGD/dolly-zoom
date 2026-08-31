@@ -151,7 +151,7 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
           <path d="M-6 -7 L-1 -4 L-1 4 L-6 7 Z" />
           <line className="projection-link" x1="-1" y1="0" x2="0" y2="0" />
         </g>
-        <text className="focal-label" x={cameraX} y={AXIS_Y - 31} textAnchor="middle">f = {focalLength.toFixed(1)} mm</text>
+        <text className="focal-label" x={cameraX - 20} y={AXIS_Y - 31} textAnchor="middle">f = {focalLength.toFixed(1)} mm</text>
 
         <g
           className="stability-plane-control"
