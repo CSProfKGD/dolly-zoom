@@ -30,7 +30,6 @@ export function DollyControl({
             type="button"
             className={`autoplay-button ${playing ? 'is-playing' : ''}`}
             aria-label={playing ? 'Stop dolly zoom animation' : 'Play dolly zoom animation'}
-            title={playing ? 'Stop' : 'Play'}
             onClick={onPlay}
           >
             <span className="autoplay-glyph" aria-hidden="true"><i /></span>

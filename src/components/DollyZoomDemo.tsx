@@ -24,8 +24,8 @@ export function DollyZoomDemo() {
   const [cameraAspect, setCameraAspect] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
-    { x: -2.2, z: -1.15, yaw: -Math.PI / 4 },
-    { x: 2.1, z: -0.2, yaw: Math.PI / 4 },
+    { x: -2.35, z: -4.6, yaw: -Math.PI / 4 },
+    { x: 1.9, z: 0.8, yaw: Math.PI / 4 },
   ]);
   const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
   const autoFrame = useRef<number | null>(null);

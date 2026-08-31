@@ -135,8 +135,7 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
 
   return (
     <div className="geometry-view">
-      <svg viewBox="0 24 820 216" role="img" aria-labelledby="geometry-title geometry-desc" preserveAspectRatio="xMidYMid meet" onContextMenu={(event) => event.preventDefault()}>
-        <title id="geometry-title">Top-down dolly zoom geometry</title>
+      <svg viewBox="0 24 820 216" role="img" aria-label="Top-down dolly zoom geometry" aria-describedby="geometry-desc" preserveAspectRatio="xMidYMid meet" onContextMenu={(event) => event.preventDefault()}>
         <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its two frustum boundaries pass the gold subject and two movable, rotated cubes.</desc>
 
         {cameraAspect !== null && (

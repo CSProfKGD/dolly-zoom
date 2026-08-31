@@ -10,7 +10,7 @@
 - Wait for a stable camera-panel resize measurement before rendering the frustum, so the geometry never paints a placeholder FOV or flashes when the page first loads.
 - Project the top-down camera and its ray origin from the real world-space camera distance with the same depth transform used for the objects. Never position the ray origin decoratively.
 - The foreground sphere has diameter 1.7 world units at `z = 0`. The two non-sphere objects are cubes and must remain cubes: do not reinterpret, stretch, or redesign them as slabs, walls, columns, or other rectangular prisms. A nearly black shadow-catching floor grounds the objects without exposing a rectangular boundary or specular hotspot.
-- The cubes sit close to the sphere depth as mirrored left/right bookends. The purple cube's front corner extends ahead of the subject plane while the teal cube remains farther back, producing a readable perspective shift without either cube overwhelming the Near view.
+- The initial composition matches the approved Far screenshot: camera at `t = 0`, stable-depth indicator at `z = 0`, teal cube well behind the sphere, and purple cube closer to the camera. Both cubes begin in mirrored corner-forward orientations and remain user-movable.
 - Compensation preserves `f / Z = 35 / 6` at the independently selected stable-depth plane. Both cubes can translate with one-button drag and rotate while both mouse buttons are held.
 - Projected size follows the pinhole relationship `imageSize = worldSize × f / distance`. Never scale scene objects to simulate compensation.
 
@@ -29,7 +29,8 @@
 - The page loads completely still. Play continues smoothly from the current camera position without snapping, then ping-pongs continuously between Near and Far until stopped. It becomes a stop control while running, and any direct interaction cancels the animation immediately.
 - Play never changes the Dolly Zoom mode: when the mode is off, autoplay moves the camera while retaining the frozen focal length; when it is on, focal-length compensation remains active.
 - All controls are native buttons/ranges with visible focus rings and accessible labels.
-- The SVG has a title and description. The WebGL panel has a text alternative.
+- The SVG has an accessible name and description. The WebGL panel has a text alternative.
+- Keep accessible names in ARIA rather than native `title` attributes so hovering never produces browser tooltip pop-ups.
 - `prefers-reduced-motion` minimizes CSS transitions; no animation runs automatically on load.
 
 ## Verification
