@@ -5,7 +5,7 @@
 import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import * as THREE from 'three';
-import type { SlabPose, SubjectPose } from './GeometryView';
+import { CUBE_SIZE, type SlabPose, type SubjectPose } from './GeometryView';
 
 type CameraViewProps = {
   distance: number;
@@ -75,12 +75,12 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
         />
       </mesh>
 
-      <mesh position={[slabs[0].x, 1.175, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.35, 2.35, 2.35]} />
+      <mesh position={[slabs[0].x, CUBE_SIZE / 2, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[CUBE_SIZE, CUBE_SIZE, CUBE_SIZE]} />
         <meshPhysicalMaterial color="#168f8c" roughness={0.3} metalness={0.1} clearcoat={0.4} clearcoatRoughness={0.25} />
       </mesh>
-      <mesh position={[slabs[1].x, 0.86, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.72, 1.72, 1.72]} />
+      <mesh position={[slabs[1].x, CUBE_SIZE / 2, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[CUBE_SIZE, CUBE_SIZE, CUBE_SIZE]} />
         <meshPhysicalMaterial color="#76538d" roughness={0.31} metalness={0.08} clearcoat={0.38} clearcoatRoughness={0.27} />
       </mesh>
 

@@ -6,6 +6,7 @@ import { horizontalFovFromVerticalFov, verticalFovFromFocalLength } from '@/src/
 
 export type SlabPose = { x: number; z: number; yaw: number };
 export type SubjectPose = { x: number; z: number };
+export const CUBE_SIZE = 2.1;
 
 type GeometryViewProps = {
   distance: number;
@@ -25,8 +26,6 @@ const BACKGROUND_X = 738;
 const BACKGROUND_DEPTH = 10.5;
 const WORLD_TO_Y = 24;
 const WORLD_TO_X = (BACKGROUND_X - SUBJECT_X) / BACKGROUND_DEPTH;
-const SLAB_WIDTHS = [2.35, 1.72] as const;
-const SLAB_DEPTHS = SLAB_WIDTHS;
 const MIN_STABLE_DEPTH = -4;
 const MAX_STABLE_DEPTH = 1.5;
 
@@ -41,9 +40,9 @@ function n(value: number): string {
 function diagramX(z: number): number { return SUBJECT_X - z * WORLD_TO_X; }
 function diagramY(x: number): number { return AXIS_Y - x * WORLD_TO_Y; }
 
-function slabFootprint(pose: SlabPose, index: number): string {
-  const halfWidth = SLAB_WIDTHS[index] / 2;
-  const halfDepth = SLAB_DEPTHS[index] / 2;
+function slabFootprint(pose: SlabPose): string {
+  const halfWidth = CUBE_SIZE / 2;
+  const halfDepth = CUBE_SIZE / 2;
   const cos = Math.cos(pose.yaw);
   const sin = Math.sin(pose.yaw);
   return [[-halfWidth, -halfDepth], [halfWidth, -halfDepth], [halfWidth, halfDepth], [-halfWidth, halfDepth]]
@@ -213,8 +212,8 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
             onPointerUp={() => { drag.current = null; }}
             onPointerCancel={() => { drag.current = null; }}
           >
-            <polygon className="slab-hit" points={slabFootprint(slab, index)} />
-            <polygon className={`background-object-svg slab-${index}`} points={slabFootprint(slab, index)} />
+            <polygon className="slab-hit" points={slabFootprint(slab)} />
+            <polygon className={`background-object-svg slab-${index}`} points={slabFootprint(slab)} />
           </g>
         ))}
 
