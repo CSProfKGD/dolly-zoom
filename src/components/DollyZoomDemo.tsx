@@ -27,7 +27,7 @@ export function DollyZoomDemo() {
     { x: -2.35, z: -4.6, yaw: -Math.PI / 4 },
     { x: 1.9, z: 0.8, yaw: Math.PI / 4 },
   ]);
-  const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
+  const [subject, setSubject] = useState<SubjectPose>({ x: -0.25, z: 0 });
   const autoFrame = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
   const tRef = useRef(t);
