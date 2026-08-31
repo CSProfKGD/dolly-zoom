@@ -6,6 +6,7 @@ import { DollyControl } from './DollyControl';
 import { GeometryView } from './GeometryView';
 import type { SlabPose, SubjectPose } from './GeometryView';
 import {
+  CAMERA_DISTANCE_FAR,
   FOCAL_LENGTH_FAR,
   focalLengthForConstantScale,
   interpolateCameraDistance,
@@ -22,6 +23,7 @@ export function DollyZoomDemo() {
   const [focalLength, setFocalLength] = useState(FOCAL_LENGTH_FAR);
   const [stableDepth, setStableDepth] = useState(0);
   const [cameraAspect, setCameraAspect] = useState(1.5);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
     { x: -2.35, z: -4.6, yaw: -0.393 },
     { x: 1.9, z: 0.8, yaw: -0.2 },
@@ -41,7 +43,31 @@ export function DollyZoomDemo() {
     autoDelay.current = null;
     autoFrame.current = null;
     transitionFrame.current = null;
+    setIsPlaying(false);
   }, []);
+
+  const runAutoplay = useCallback(() => {
+    cancelMotion();
+    setCompensated(true);
+    setIsPlaying(true);
+    setT(0);
+    setFocalLength(focalLengthForConstantScale(CAMERA_DISTANCE_FAR - stableDepth));
+    const started = performance.now();
+    const duration = 3800;
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - started) / duration);
+      const nextT = easeInOutCubic(progress);
+      const nextDistance = interpolateCameraDistance(nextT);
+      setT(nextT);
+      setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
+      if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
+      else {
+        autoFrame.current = null;
+        setIsPlaying(false);
+      }
+    };
+    autoFrame.current = requestAnimationFrame(tick);
+  }, [cancelMotion, stableDepth]);
 
   const handleSlider = useCallback((nextT: number) => {
     cancelMotion();
@@ -92,25 +118,10 @@ export function DollyZoomDemo() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    autoDelay.current = window.setTimeout(() => {
-      const started = performance.now();
-      const duration = 3800;
-      const tick = (now: number) => {
-        const progress = Math.min(1, (now - started) / duration);
-        const nextT = progress < 0.7
-          ? easeInOutCubic(progress / 0.7)
-          : 1 - 0.5 * easeInOutCubic((progress - 0.7) / 0.3);
-        const nextDistance = interpolateCameraDistance(nextT);
-        setT(nextT);
-        setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
-        if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
-        else autoFrame.current = null;
-      };
-      autoFrame.current = requestAnimationFrame(tick);
-    }, 450);
+    autoDelay.current = window.setTimeout(runAutoplay, 450);
 
     return cancelMotion;
-  }, [cancelMotion, stableDepth]);
+  }, [cancelMotion, runAutoplay]);
 
   return (
     <main className="demo-page">
@@ -133,9 +144,11 @@ export function DollyZoomDemo() {
         <DollyControl
           t={t}
           compensated={compensated}
+          playing={isPlaying}
           onChange={handleSlider}
           onInteraction={cancelMotion}
           onToggleCompensation={toggleCompensation}
+          onPlay={isPlaying ? cancelMotion : runAutoplay}
         />
       </section>
     </main>

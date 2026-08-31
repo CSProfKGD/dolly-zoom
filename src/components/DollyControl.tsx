@@ -3,17 +3,21 @@ import type { CSSProperties } from 'react';
 type DollyControlProps = {
   t: number;
   compensated: boolean;
+  playing: boolean;
   onChange: (value: number) => void;
   onInteraction: () => void;
   onToggleCompensation: () => void;
+  onPlay: () => void;
 };
 
 export function DollyControl({
   t,
   compensated,
+  playing,
   onChange,
   onInteraction,
   onToggleCompensation,
+  onPlay,
 }: DollyControlProps) {
   const sliderStyle = { '--slider-progress': `${t * 100}%` } as CSSProperties;
 
@@ -40,16 +44,27 @@ export function DollyControl({
           <div className="landmarks" aria-hidden="true"><span>Far</span><span>Near</span></div>
         </div>
 
-        <button
-          type="button"
-          className={`dolly-switch ${compensated ? 'is-on' : 'is-off'}`}
-          role="switch"
-          aria-checked={compensated}
-          onClick={onToggleCompensation}
-        >
-          <span className="switch-label">Dolly Zoom</span>
-          <span className="switch-glyph" aria-hidden="true"><i /></span>
-        </button>
+        <div className="control-actions">
+          <button
+            type="button"
+            className={`autoplay-button ${playing ? 'is-playing' : ''}`}
+            aria-label={playing ? 'Stop automatic dolly zoom' : 'Play automatic dolly zoom'}
+            onClick={onPlay}
+          >
+            <span className="autoplay-glyph" aria-hidden="true"><i /></span>
+            <span>Auto Play</span>
+          </button>
+          <button
+            type="button"
+            className={`dolly-switch ${compensated ? 'is-on' : 'is-off'}`}
+            role="switch"
+            aria-checked={compensated}
+            onClick={onToggleCompensation}
+          >
+            <span className="switch-label">Dolly Zoom</span>
+            <span className="switch-glyph" aria-hidden="true"><i /></span>
+          </button>
+        </div>
       </div>
 
     </div>

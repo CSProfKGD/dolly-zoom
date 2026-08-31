@@ -27,8 +27,6 @@ const WORLD_TO_Y = 24;
 const WORLD_TO_X = (BACKGROUND_X - SUBJECT_X) / BACKGROUND_DEPTH;
 const SLAB_WIDTHS = [2.35, 1.72] as const;
 const SLAB_DEPTHS = SLAB_WIDTHS;
-const FAR_DISTANCE = 6;
-const NEAR_DISTANCE = 2;
 const MIN_STABLE_DEPTH = -4;
 const MAX_STABLE_DEPTH = 1.5;
 
@@ -60,11 +58,10 @@ export function GeometryView({ distance, focalLength, cameraAspect, stableDepth,
   const drag = useRef<{ index: number; mode: 'move' | 'rotate'; x: number; y: number; offsetX: number; offsetY: number } | null>(null);
   const draggingSubject = useRef<{ offsetX: number; offsetY: number } | null>(null);
   const draggingStableDepth = useRef(false);
-  const travel = (FAR_DISTANCE - distance) / (FAR_DISTANCE - NEAR_DISTANCE);
   const subjectX = diagramX(subject.z);
   const subjectY = diagramY(subject.x);
   const stableX = diagramX(stableDepth);
-  const cameraX = 92 + travel * 218;
+  const cameraX = diagramX(distance);
   const horizontalFov = horizontalFovFromVerticalFov(verticalFovFromFocalLength(focalLength), cameraAspect);
   const halfAngle = horizontalFov * Math.PI / 360;
   const backgroundDistance = distance + BACKGROUND_DEPTH;
