@@ -25,7 +25,7 @@ const BACKGROUND_DEPTH = 10.5;
 const WORLD_TO_Y = 24;
 const WORLD_TO_X = (BACKGROUND_X - SUBJECT_X) / BACKGROUND_DEPTH;
 const SLAB_WIDTHS = [2.35, 1.72] as const;
-const SLAB_DEPTHS = [2.35, 0.5] as const;
+const SLAB_DEPTHS = SLAB_WIDTHS;
 const FAR_DISTANCE = 6;
 const NEAR_DISTANCE = 2;
 const MIN_STABLE_DEPTH = -4;
@@ -211,7 +211,7 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
             className="slab-control"
             role="button"
             tabIndex={0}
-            aria-label={`${index === 0 ? 'Teal' : 'Purple'} architectural slab. Drag to move; hold both mouse buttons while dragging to rotate.`}
+            aria-label={`${index === 0 ? 'Teal' : 'Purple'} cube. Drag to move; hold both mouse buttons while dragging to rotate.`}
             onPointerDown={(event) => beginSlabDrag(index, event)}
             onMouseDown={(event) => detectRotationChord(index, event)}
             onPointerMove={(event) => moveSlab(index, event)}

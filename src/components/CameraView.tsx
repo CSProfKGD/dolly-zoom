@@ -74,12 +74,12 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
         />
       </mesh>
 
-      <mesh position={[slabs[0].x, 5.5, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.35, 11, 2.35]} />
+      <mesh position={[slabs[0].x, 1.175, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.35, 2.35, 2.35]} />
         <meshPhysicalMaterial color="#168f8c" roughness={0.3} metalness={0.1} clearcoat={0.4} clearcoatRoughness={0.25} />
       </mesh>
-      <mesh position={[slabs[1].x, 5.9, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
-        <boxGeometry args={[1.72, 11.8, 0.5]} />
+      <mesh position={[slabs[1].x, 0.86, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.72, 1.72, 1.72]} />
         <meshPhysicalMaterial color="#76538d" roughness={0.31} metalness={0.08} clearcoat={0.38} clearcoatRoughness={0.27} />
       </mesh>
 
@@ -90,7 +90,7 @@ function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 
 
 export function CameraView({ distance, verticalFov, slabs, subject }: CameraViewProps) {
   return (
-    <div className="camera-view" aria-label="Perspective camera view of a golden sphere and two architectural color slabs">
+    <div className="camera-view" aria-label="Perspective camera view of a golden sphere and two colored cubes">
       <Canvas
         dpr={[1, 1.75]}
         frameloop="demand"
