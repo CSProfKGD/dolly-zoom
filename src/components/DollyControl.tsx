@@ -2,9 +2,6 @@ import type { CSSProperties } from 'react';
 
 type DollyControlProps = {
   t: number;
-  distance: number;
-  focalLength: number;
-  verticalFov: number;
   compensated: boolean;
   onChange: (value: number) => void;
   onInteraction: () => void;
@@ -13,9 +10,6 @@ type DollyControlProps = {
 
 export function DollyControl({
   t,
-  distance,
-  focalLength,
-  verticalFov,
   compensated,
   onChange,
   onInteraction,
@@ -46,9 +40,6 @@ export function DollyControl({
       </div>
 
       <div className="control-footer">
-        <output className="live-readout" htmlFor="dolly-range" aria-live="polite">
-          <span>{distance.toFixed(2)} m</span><i>·</i><span className={compensated ? 'focal-value is-coupled' : 'focal-value'}>{focalLength.toFixed(0)} mm</span><i>·</i><span>{verticalFov.toFixed(1)}°</span>
-        </output>
         <button
           type="button"
           className={`dolly-switch ${compensated ? 'is-on' : 'is-off'}`}

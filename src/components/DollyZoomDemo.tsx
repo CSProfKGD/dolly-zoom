@@ -131,9 +131,6 @@ export function DollyZoomDemo() {
       <section className="bottom-dock" aria-label="Dolly zoom controls and camera values">
         <DollyControl
           t={t}
-          distance={stableDistance}
-          focalLength={focalLength}
-          verticalFov={verticalFov}
           compensated={compensated}
           onChange={handleSlider}
           onInteraction={cancelMotion}
