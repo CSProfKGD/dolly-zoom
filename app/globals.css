@@ -63,23 +63,23 @@ button { color: inherit; }
   overflow: hidden;
   background: var(--black);
 }
-.camera-view { position: relative; height: clamp(390px, 47vw, 560px); background: var(--black); }
+.camera-view { position: relative; height: clamp(390px, 47vw, 560px); margin-top: -6px; background: var(--black); }
 .camera-view canvas { display: block; width: 100%; height: 100%; }
 .camera-view::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse at 50% 56%, transparent 56%, rgba(0,0,0,.46) 100%),
-    linear-gradient(to bottom, transparent 86%, rgba(0,0,0,.32));
+  background: radial-gradient(ellipse at 50% 52%, transparent 64%, rgba(0,0,0,.42) 100%);
 }
 
 .geometry-heading { margin-top: clamp(46px, 5vw, 68px); }
-.geometry-view { height: clamp(255px, 25vw, 330px); }
+.geometry-view { height: clamp(315px, 31vw, 410px); }
 .geometry-view svg { display: block; width: 100%; height: 100%; }
 .frustum-fill { fill: rgba(53,200,237,.006); }
 .frustum-line { stroke: var(--cyan); stroke-width: 1.25; opacity: .82; vector-effect: non-scaling-stroke; }
+.edge-ray { stroke: rgba(245,245,247,.22); stroke-width: .85; vector-effect: non-scaling-stroke; }
+.background-plane-svg { stroke: rgba(245,245,247,.2); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .diagram-camera rect, .diagram-camera path, .diagram-camera .projection-link { fill: #000; stroke: var(--cyan); stroke-width: 1.35; vector-effect: non-scaling-stroke; }
 .diagram-camera .sensor-plane { stroke: rgba(53,200,237,.34); stroke-width: .8; vector-effect: non-scaling-stroke; }
 .subject-shape { fill: var(--gold); filter: drop-shadow(0 0 5px rgba(246,201,39,.22)); }
@@ -95,9 +95,9 @@ button { color: inherit; }
 .slab-control { cursor: grab; touch-action: none; outline: none; }
 .slab-control:active { cursor: grabbing; }
 .slab-hit { fill: transparent; stroke: transparent; stroke-width: 16; pointer-events: all; vector-effect: non-scaling-stroke; }
-.background-object-svg { fill: #18b8b0; stroke: rgba(126,244,238,.8); stroke-width: 1; opacity: .82; pointer-events: none; vector-effect: non-scaling-stroke; }
+.background-object-svg { fill: #168f8c; stroke: rgba(126,220,218,.68); stroke-width: 1; opacity: .78; pointer-events: none; vector-effect: non-scaling-stroke; }
 .slab-control:focus-visible .background-object-svg { stroke: var(--cyan); stroke-width: 1.7; }
-.background-object-svg.slab-1 { fill: #a45ac4; stroke: rgba(224,174,245,.82); }
+.background-object-svg.slab-1 { fill: #76538d; stroke: rgba(204,175,220,.7); }
 .distance-line, .distance-tick { stroke: rgba(245,245,247,.28); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .distance-label { fill: rgba(245,245,247,.62); font-size: 13px; font-variant-numeric: tabular-nums; }
 .focal-label { fill: rgba(53,200,237,.82); font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -106,15 +106,15 @@ button { color: inherit; }
   width: 100%;
   margin-top: clamp(48px, 5vw, 72px);
 }
-.control-dock-main { width: min(720px, 68vw); margin-inline: auto; }
-.control-topline { margin-bottom: 10px; }
+.control-dock-main { width: min(630px, 62vw); margin-inline: auto; }
+.control-topline { display: flex; align-items: center; justify-content: space-between; min-height: 38px; margin-bottom: 8px; }
 .control-label { color: var(--muted); font-size: 12px; font-weight: 650; letter-spacing: .16em; text-transform: uppercase; }
 .dolly-switch {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  width: 166px;
+  justify-content: flex-start;
+  gap: 9px;
+  width: auto;
   height: 38px;
   padding: 0;
   border: 0;
@@ -141,7 +141,6 @@ button { color: inherit; }
 .slider-wrap input::-moz-range-thumb { width: 14px; height: 14px; border: 1.5px solid white; border-radius: 50%; background: #080a0b; }
 .slider-wrap input:focus-visible { outline: 1px solid var(--cyan); outline-offset: 4px; }
 .landmarks { display: flex; justify-content: space-between; padding-top: 6px; color: rgba(245,245,247,.42); font-size: 13px; }
-.control-footer { display: flex; align-items: center; justify-content: flex-end; margin-top: 14px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 @media (max-width: 760px) {
@@ -151,7 +150,7 @@ button { color: inherit; }
   .subtitle { margin-top: 13px; font-size: 16px; }
   .camera-view { height: 330px; }
   .geometry-heading { margin-top: 42px; }
-  .geometry-view { height: 250px; }
+  .geometry-view { height: 290px; }
   .bottom-dock { margin-top: 42px; }
 }
 
@@ -164,7 +163,7 @@ button { color: inherit; }
   .hero-block { margin-bottom: clamp(22px, 2.5vh, 34px); }
   .camera-view { height: clamp(280px, 39vh, 560px); }
   .geometry-heading { margin-top: clamp(20px, 2.2vh, 30px); }
-  .geometry-view { height: clamp(190px, 23vh, 330px); }
+  .geometry-view { height: clamp(245px, 28vh, 390px); }
   .bottom-dock { margin-top: clamp(18px, 2.2vh, 30px); }
 }
 
@@ -173,7 +172,7 @@ button { color: inherit; }
   .hero-block { margin-bottom: 18px; }
   .camera-view { height: clamp(230px, 32vh, 300px); }
   .geometry-heading { margin-top: 16px; }
-  .geometry-view { height: clamp(155px, 19vh, 190px); }
+  .geometry-view { height: clamp(195px, 23vh, 230px); }
   .bottom-dock { margin-top: 14px; }
 }
 
@@ -181,7 +180,7 @@ button { color: inherit; }
   .hero-block h1 { font-size: 43px; }
   .subtitle { font-size: 15px; }
   .camera-view { height: 290px; }
-  .control-footer { align-items: center; }
+  .control-dock-main { width: 88vw; }
   .dolly-switch { font-size: 13px; }
 }
 

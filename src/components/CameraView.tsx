@@ -19,11 +19,11 @@ function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' |
 
   useEffect(() => {
     const perspective = camera as THREE.PerspectiveCamera;
-    perspective.position.set(0, 0.85, distance);
+    perspective.position.set(0, 1.12, distance);
     perspective.fov = verticalFov;
     perspective.near = 0.05;
     perspective.far = 80;
-    perspective.lookAt(0, 0.85, 0);
+    perspective.lookAt(0, 1.02, -0.65);
     perspective.updateProjectionMatrix();
     invalidate();
   }, [camera, distance, invalidate, verticalFov]);
@@ -31,59 +31,71 @@ function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' |
   return null;
 }
 
+function SoftGround() {
+  return (
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.025, -18]}>
+        <planeGeometry args={[80, 80]} />
+        <meshBasicMaterial color="#060808" transparent opacity={0.7} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.012, -36]} receiveShadow>
+        <planeGeometry args={[180, 180]} />
+        <shadowMaterial color="#000000" transparent opacity={0.58} />
+      </mesh>
+    </>
+  );
+}
+
 function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 'subject'>) {
   return (
     <>
       <color attach="background" args={['#000000']} />
-      <fog attach="fog" args={['#000000', 26, 52]} />
-      <ambientLight intensity={0.58} />
-      <hemisphereLight args={['#e9f2f7', '#050607', 1.15]} />
+      <fog attach="fog" args={['#000000', 9, 30]} />
+      <ambientLight intensity={0.48} />
+      <hemisphereLight args={['#dfe9ef', '#000000', 0.92]} />
       <directionalLight
         position={[-4, 8, 7]}
-        intensity={3.4}
+        intensity={2.5}
         color="#fff4dc"
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-bias={-0.0003}
       />
-      <directionalLight position={[7, 5, -2]} intensity={1.7} color="#bcd8e4" />
+      <directionalLight position={[7, 5, -2]} intensity={1.15} color="#bcd8e4" />
 
       <mesh position={[subject.x, 0.85, subject.z]} castShadow>
         <sphereGeometry args={[0.85, 96, 64]} />
         <meshPhysicalMaterial
-          color="#f6c927"
-          roughness={0.2}
-          metalness={0.12}
-          clearcoat={0.68}
-          clearcoatRoughness={0.16}
+          color="#efc52b"
+          roughness={0.31}
+          metalness={0.04}
+          clearcoat={0.42}
+          clearcoatRoughness={0.3}
         />
       </mesh>
 
-      <mesh position={[slabs[0].x, 0.61, slabs[0].z]} rotation={[0.08, slabs[0].yaw, 0.06]} castShadow receiveShadow>
-        <boxGeometry args={[1.22, 1.22, 1.22]} />
-        <meshPhysicalMaterial color="#18b8b0" roughness={0.2} metalness={0.18} clearcoat={0.72} clearcoatRoughness={0.14} />
+      <mesh position={[slabs[0].x, 5.5, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[2.35, 11, 0.48]} />
+        <meshPhysicalMaterial color="#168f8c" roughness={0.3} metalness={0.1} clearcoat={0.4} clearcoatRoughness={0.25} />
       </mesh>
-      <mesh position={[slabs[1].x, 0.61, slabs[1].z]} rotation={[-0.06, slabs[1].yaw, -0.05]} castShadow receiveShadow>
-        <boxGeometry args={[1.22, 1.22, 1.22]} />
-        <meshPhysicalMaterial color="#a45ac4" roughness={0.2} metalness={0.14} clearcoat={0.76} clearcoatRoughness={0.13} />
+      <mesh position={[slabs[1].x, 5.9, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.72, 11.8, 0.5]} />
+        <meshPhysicalMaterial color="#76538d" roughness={0.31} metalness={0.08} clearcoat={0.38} clearcoatRoughness={0.27} />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, -15]} receiveShadow>
-        <planeGeometry args={[80, 90]} />
-        <meshStandardMaterial color="#010203" roughness={1} metalness={0} />
-      </mesh>
+      <SoftGround />
     </>
   );
 }
 
 export function CameraView({ distance, verticalFov, slabs, subject }: CameraViewProps) {
   return (
-    <div className="camera-view" aria-label="Perspective camera view of a fixed golden sphere and two glossy colored cubes">
+    <div className="camera-view" aria-label="Perspective camera view of a golden sphere and two architectural color slabs">
       <Canvas
         dpr={[1, 1.75]}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
-        camera={{ position: [0, 0.85, distance], fov: verticalFov, near: 0.05, far: 80 }}
+        camera={{ position: [0, 1.12, distance], fov: verticalFov, near: 0.05, far: 80 }}
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       >
         <CameraRig distance={distance} verticalFov={verticalFov} />

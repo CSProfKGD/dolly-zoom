@@ -6,14 +6,14 @@
 - Dolly parameter: `t ∈ [0, 1]`, with `Z(t) = 16.6667 - 12.6667t` metres.
 - Stable-plane compensation is `f = Z × 35 / 6`, giving 35 mm at 6 m, 23.3 mm at the 4 m midpoint, and 11.7 mm at 2 m.
 - Sensor dimensions are 36 × 24 mm. Camera-view FOV is vertical: `2 atan(24 / 2f)`. The top-down frustum uses the 36 mm horizontal sensor dimension.
-- The foreground sphere has diameter 1.7 world units at `z = 0`. Two compact glossy colored cubes sit nearby, one forward and one behind the sphere. The floor is a restrained glossy black stage.
+- The foreground sphere has diameter 1.7 world units at `z = 0`. Two tall, asymmetrical architectural slabs sit beyond it in depth. A nearly black shadow-catching floor grounds the objects without exposing a rectangular boundary or specular hotspot.
 - Compensation preserves `f / Z = 35 / 6` at the independently selected stable-depth plane. Cubes can translate with one-button drag and rotate while both mouse buttons are held.
 - Projected size follows the pinhole relationship `imageSize = worldSize × f / distance`. Never scale scene objects to simulate compensation.
 
 ## Visual system
 
 - Background `#020303`; panel `#060809`; near-white `#f3f5f6`; muted cool grays.
-- Cyan `#26c9f3` is reserved for camera/frustum/active control state.
+- Cyan is reserved for the camera, frustum, stable-depth plane, and active control state. Gold marks the subject; low-contrast gray marks fixed-world geometry and subject-edge rays.
 - Gold `#ffd026` identifies the subject and focal-length value.
 - System Apple font stack only. Numbers use tabular figures. Borders remain at hairline opacity.
 - The page is one continuous black presentation stage: hero, cinematic scene, technical diagram, then borderless controls. All major left and right edges share one content grid.

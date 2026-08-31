@@ -21,6 +21,16 @@ export function DollyControl({
     <div className="control-dock-main">
       <div className="control-topline">
         <span className="control-label">Camera position</span>
+        <button
+          type="button"
+          className={`dolly-switch ${compensated ? 'is-on' : 'is-off'}`}
+          role="switch"
+          aria-checked={compensated}
+          onClick={onToggleCompensation}
+        >
+          <span className="switch-label">Dolly Zoom</span>
+          <span className="switch-glyph" aria-hidden="true"><i /></span>
+        </button>
       </div>
 
       <div className="slider-wrap" style={sliderStyle}>
@@ -39,18 +49,6 @@ export function DollyControl({
         <div className="landmarks" aria-hidden="true"><span>Far</span><span>Near</span></div>
       </div>
 
-      <div className="control-footer">
-        <button
-          type="button"
-          className={`dolly-switch ${compensated ? 'is-on' : 'is-off'}`}
-          role="switch"
-          aria-checked={compensated}
-          onClick={onToggleCompensation}
-        >
-          <span className="switch-label">Dolly Zoom</span>
-          <span className="switch-glyph" aria-hidden="true"><i /></span>
-        </button>
-      </div>
     </div>
   );
 }
