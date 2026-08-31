@@ -6,7 +6,6 @@ import { DollyControl } from './DollyControl';
 import { GeometryView } from './GeometryView';
 import type { SlabPose, SubjectPose } from './GeometryView';
 import {
-  CAMERA_DISTANCE_FAR,
   FOCAL_LENGTH_FAR,
   focalLengthForConstantScale,
   interpolateCameraDistance,
@@ -32,6 +31,7 @@ export function DollyZoomDemo() {
   const autoFrame = useRef<number | null>(null);
   const autoDelay = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
+  const tRef = useRef(t);
   const distance = interpolateCameraDistance(t);
   const stableDistance = distance - stableDepth;
   const verticalFov = verticalFovFromFocalLength(focalLength);
@@ -48,15 +48,17 @@ export function DollyZoomDemo() {
 
   const runAutoplay = useCallback(() => {
     cancelMotion();
+    const startT = tRef.current;
+    const endT = startT >= 0.999 ? 0 : 1;
+    const travel = Math.abs(endT - startT);
     setCompensated(true);
     setIsPlaying(true);
-    setT(0);
-    setFocalLength(focalLengthForConstantScale(CAMERA_DISTANCE_FAR - stableDepth));
+    setFocalLength(focalLengthForConstantScale(interpolateCameraDistance(startT) - stableDepth));
     const started = performance.now();
-    const duration = 3800;
+    const duration = 3800 * Math.max(0.18, travel);
     const tick = (now: number) => {
       const progress = Math.min(1, (now - started) / duration);
-      const nextT = easeInOutCubic(progress);
+      const nextT = startT + (endT - startT) * easeInOutCubic(progress);
       const nextDistance = interpolateCameraDistance(nextT);
       setT(nextT);
       setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
@@ -114,6 +116,10 @@ export function DollyZoomDemo() {
     cancelMotion();
     setSubject(pose);
   }, [cancelMotion]);
+
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

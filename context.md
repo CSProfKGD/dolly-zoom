@@ -24,7 +24,7 @@
 ## Motion and accessibility
 
 - Direct slider movement is never eased; only autoplay and compensation restoration use easing.
-- Auto Play runs one compensated far-to-near sweep and stops at the near endpoint. Its button becomes a stop control while running, and any direct interaction cancels the sweep immediately.
+- Auto Play continues smoothly from the current camera position toward the near endpoint, or reverses toward far when already at near, without snapping first. It stops after one pass, becomes a stop control while running, and any direct interaction cancels the sweep immediately.
 - All controls are native buttons/ranges with visible focus rings and accessible labels.
 - The SVG has a title and description. The WebGL panel has a text alternative.
 - `prefers-reduced-motion` skips autoplay and minimizes transitions.
