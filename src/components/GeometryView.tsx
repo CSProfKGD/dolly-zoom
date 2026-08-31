@@ -67,11 +67,6 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
   const halfAngle = horizontalFovFromFocalLength(focalLength) * Math.PI / 360;
   const backgroundDistance = distance + BACKGROUND_DEPTH;
   const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * 5;
-  const subjectDistance = Math.max(0.5, distance - subject.z);
-  const subjectHalfHeight = 0.85 * WORLD_TO_Y;
-  const rayScale = backgroundDistance / subjectDistance;
-  const rayCenterAtBackground = AXIS_Y + (subjectY - AXIS_Y) * rayScale;
-  const rayHalfHeightAtBackground = subjectHalfHeight * rayScale;
 
   const toSvgPoint = (event: ReactPointerEvent<SVGGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
@@ -143,13 +138,11 @@ export function GeometryView({ distance, focalLength, stableDepth, slabs, subjec
     <div className="geometry-view">
       <svg viewBox="0 24 820 216" role="img" aria-labelledby="geometry-title geometry-desc" preserveAspectRatio="xMidYMid meet" onContextMenu={(event) => event.preventDefault()}>
         <title id="geometry-title">Top-down dolly zoom geometry</title>
-        <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its frustum and subject-edge rays pass the gold subject and two movable, rotated cubes.</desc>
+        <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its two frustum boundaries pass the gold subject and two movable, rotated cubes.</desc>
 
         <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(AXIS_Y - frustumHalfHeight)} L ${BACKGROUND_X} ${n(AXIS_Y + frustumHalfHeight)} Z`} />
         <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y - frustumHalfHeight} />
         <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={AXIS_Y + frustumHalfHeight} />
-        <line className="edge-ray" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={rayCenterAtBackground - rayHalfHeightAtBackground} />
-        <line className="edge-ray" x1={cameraX} y1={AXIS_Y} x2={BACKGROUND_X} y2={rayCenterAtBackground + rayHalfHeightAtBackground} />
 
         <g className="diagram-camera" transform={`translate(${n(cameraX)} ${AXIS_Y})`}>
           <rect x="-34" y="-11" width="28" height="22" rx="2" />

@@ -13,7 +13,7 @@
 ## Visual system
 
 - Background `#020303`; panel `#060809`; near-white `#f3f5f6`; muted cool grays.
-- Cyan is reserved for the camera, frustum, stable-depth plane, and active control state. Gold marks the subject; low-contrast gray marks fixed-world geometry and subject-edge rays.
+- Cyan is reserved for the camera, the single pair of frustum boundaries, stable-depth plane, and active control state. Do not add a second set of subject-edge or aspect-ratio rays. Gold marks the subject; low-contrast gray marks fixed-world geometry.
 - Gold `#ffd026` identifies the subject and focal-length value.
 - System Apple font stack only. Numbers use tabular figures. Borders remain at hairline opacity.
 - The page is one continuous black presentation stage: hero, cinematic scene, technical diagram, then borderless controls. All major left and right edges share one content grid.
