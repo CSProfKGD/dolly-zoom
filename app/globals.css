@@ -173,6 +173,19 @@ button { color: inherit; }
   .bottom-dock { margin-top: 42px; }
 }
 
+@media (min-width: 761px) {
+  .demo-page {
+    min-height: 100svh;
+    padding-top: clamp(20px, 3vh, 34px);
+    padding-bottom: clamp(20px, 3vh, 34px);
+  }
+  .hero-block { margin-bottom: clamp(22px, 3vh, 36px); }
+  .camera-view { height: clamp(220px, 32vh, 390px); }
+  .geometry-heading { margin-top: clamp(22px, 3vh, 36px); }
+  .geometry-view { height: clamp(150px, 19vh, 220px); }
+  .bottom-dock { margin-top: clamp(20px, 2.8vh, 34px); }
+}
+
 @media (max-width: 460px) {
   .hero-block h1 { font-size: 43px; }
   .subtitle { font-size: 15px; }
