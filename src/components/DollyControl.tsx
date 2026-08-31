@@ -2,36 +2,31 @@ import type { CSSProperties } from 'react';
 
 type DollyControlProps = {
   t: number;
+  distance: number;
+  focalLength: number;
+  verticalFov: number;
   compensated: boolean;
   onChange: (value: number) => void;
   onInteraction: () => void;
   onToggleCompensation: () => void;
 };
 
-export function DollyControl({ t, compensated, onChange, onInteraction, onToggleCompensation }: DollyControlProps) {
+export function DollyControl({
+  t,
+  distance,
+  focalLength,
+  verticalFov,
+  compensated,
+  onChange,
+  onInteraction,
+  onToggleCompensation,
+}: DollyControlProps) {
   const sliderStyle = { '--slider-progress': `${t * 100}%` } as CSSProperties;
 
   return (
     <div className="control-dock-main">
       <div className="control-topline">
-        <div>
-          <span className="control-label">Dolly ↔ Zoom</span>
-          <output className="dolly-readout" htmlFor="dolly-range">
-            <span className="t-symbol">t</span>
-            <span className="readout-equals">=</span>
-            {t.toFixed(2)}
-          </output>
-        </div>
-
-        <button
-          type="button"
-          className={`freeze-control ${compensated ? '' : 'is-frozen'}`}
-          aria-pressed={!compensated}
-          onClick={onToggleCompensation}
-        >
-          <span className="switch-glyph" aria-hidden="true"><i /></span>
-          {compensated ? 'Freeze lens' : 'Resume zoom'}
-        </button>
+        <span className="control-label">Camera position</span>
       </div>
 
       <div className="slider-wrap" style={sliderStyle}>
@@ -47,7 +42,24 @@ export function DollyControl({ t, compensated, onChange, onInteraction, onToggle
           onKeyDown={onInteraction}
           onChange={(event) => onChange(Number(event.currentTarget.value) / 1000)}
         />
-        <div className="landmarks" aria-hidden="true"><span>Far / Tele</span><span>Near / Wide</span></div>
+        <div className="landmarks" aria-hidden="true"><span>Far</span><span>Near</span></div>
+      </div>
+
+      <div className="control-footer">
+        <output className="live-readout" htmlFor="dolly-range" aria-live="polite">
+          <span>{distance.toFixed(2)} m</span><i>·</i><span className={compensated ? 'focal-value is-coupled' : 'focal-value'}>{focalLength.toFixed(0)} mm</span><i>·</i><span>{verticalFov.toFixed(1)}°</span>
+        </output>
+        <button
+          type="button"
+          className={`dolly-switch ${compensated ? 'is-on' : 'is-off'}`}
+          role="switch"
+          aria-checked={compensated}
+          onClick={onToggleCompensation}
+        >
+          <span>Dolly Zoom</span>
+          <span className="switch-glyph" aria-hidden="true"><i /></span>
+          <span className="switch-state">{compensated ? 'On' : 'Off'}</span>
+        </button>
       </div>
     </div>
   );

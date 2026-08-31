@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CameraView } from './CameraView';
 import { DollyControl } from './DollyControl';
 import { GeometryView } from './GeometryView';
-import type { CubePose } from './GeometryView';
+import type { SlabPose, SubjectPose } from './GeometryView';
 import {
   FOCAL_LENGTH_FAR,
   focalLengthForConstantScale,
@@ -20,11 +20,11 @@ export function DollyZoomDemo() {
   const [t, setT] = useState(0);
   const [compensated, setCompensated] = useState(true);
   const [focalLength, setFocalLength] = useState(FOCAL_LENGTH_FAR);
-  const [subjectDepth, setSubjectDepth] = useState(0);
-  const [cubes, setCubes] = useState<[CubePose, CubePose]>([
-    { x: -1.18, z: 0.65, yaw: 0.42 },
-    { x: 1.18, z: -1.1, yaw: -0.39 },
+  const [slabs, setSlabs] = useState<[SlabPose, SlabPose]>([
+    { x: -3.25, z: -10.5, yaw: 0.08 },
+    { x: 3.25, z: -10.5, yaw: -0.08 },
   ]);
+  const [subject, setSubject] = useState<SubjectPose>({ x: 0, z: 0 });
   const autoFrame = useRef<number | null>(null);
   const autoDelay = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
@@ -40,23 +40,19 @@ export function DollyZoomDemo() {
     transitionFrame.current = null;
   }, []);
 
-  const compensatedFocal = useCallback((nextDistance: number) => {
-    return focalLengthForConstantScale(nextDistance - subjectDepth);
-  }, [subjectDepth]);
-
   const handleSlider = useCallback((nextT: number) => {
     cancelMotion();
     const nextDistance = interpolateCameraDistance(nextT);
     setT(nextT);
-    if (compensated) setFocalLength(compensatedFocal(nextDistance));
-  }, [cancelMotion, compensated, compensatedFocal]);
+    if (compensated) setFocalLength(focalLengthForConstantScale(nextDistance));
+  }, [cancelMotion, compensated]);
 
   const animateFocalTo = useCallback((target: number) => {
     if (transitionFrame.current !== null) cancelAnimationFrame(transitionFrame.current);
     const from = focalLength;
     const started = performance.now();
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - started) / 340);
+      const progress = Math.min(1, (now - started) / 380);
       setFocalLength(from + (target - from) * easeInOutCubic(progress));
       if (progress < 1) transitionFrame.current = requestAnimationFrame(tick);
       else transitionFrame.current = null;
@@ -71,29 +67,30 @@ export function DollyZoomDemo() {
       return;
     }
     setCompensated(true);
-    animateFocalTo(compensatedFocal(distance));
-  }, [animateFocalTo, cancelMotion, compensated, compensatedFocal, distance]);
+    animateFocalTo(focalLengthForConstantScale(distance));
+  }, [animateFocalTo, cancelMotion, compensated, distance]);
 
-  const moveSubjectPlane = useCallback((nextDepth: number) => {
+  const updateSlab = useCallback((index: number, pose: SlabPose) => {
     cancelMotion();
-    setSubjectDepth(nextDepth);
-    if (compensated) setFocalLength(focalLengthForConstantScale(distance - nextDepth));
-  }, [cancelMotion, compensated, distance]);
+    setSlabs((current) => current.map((slab, slabIndex) => slabIndex === index ? pose : slab) as [SlabPose, SlabPose]);
+  }, [cancelMotion]);
 
-  const moveCube = useCallback((index: number, pose: CubePose) => {
+  const updateSubject = useCallback((pose: SubjectPose) => {
     cancelMotion();
-    setCubes((current) => current.map((cube, cubeIndex) => cubeIndex === index ? pose : cube) as [CubePose, CubePose]);
+    setSubject(pose);
   }, [cancelMotion]);
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     autoDelay.current = window.setTimeout(() => {
       const started = performance.now();
+      const duration = 3800;
       const tick = (now: number) => {
-        const progress = Math.min(1, (now - started) / 5200);
-        const nextT = easeInOutCubic(progress);
+        const progress = Math.min(1, (now - started) / duration);
+        const nextT = progress < 0.7
+          ? easeInOutCubic(progress / 0.7)
+          : 1 - 0.5 * easeInOutCubic((progress - 0.7) / 0.3);
         const nextDistance = interpolateCameraDistance(nextT);
         setT(nextT);
         setFocalLength(focalLengthForConstantScale(nextDistance));
@@ -101,11 +98,9 @@ export function DollyZoomDemo() {
         else autoFrame.current = null;
       };
       autoFrame.current = requestAnimationFrame(tick);
-    }, 550);
+    }, 450);
 
-    return () => {
-      cancelMotion();
-    };
+    return cancelMotion;
   }, [cancelMotion]);
 
   return (
@@ -116,18 +111,21 @@ export function DollyZoomDemo() {
       </header>
 
       <section className="visual-stack">
-        <div className="section-label"><span>Camera view</span></div>
+        <div className="section-label">Camera view</div>
         <div className="camera-panel">
-          <CameraView distance={distance} verticalFov={verticalFov} cubes={cubes} />
+          <CameraView distance={distance} verticalFov={verticalFov} slabs={slabs} subject={subject} />
         </div>
 
-        <div className="section-label geometry-heading"><span>Top-down geometry</span></div>
-        <GeometryView distance={distance} focalLength={focalLength} subjectDepth={subjectDepth} cubes={cubes} onSubjectDepthChange={moveSubjectPlane} onCubeChange={moveCube} />
+        <div className="section-label geometry-heading">Top-down geometry</div>
+        <GeometryView distance={distance} focalLength={focalLength} slabs={slabs} subject={subject} onSlabChange={updateSlab} onSubjectChange={updateSubject} />
       </section>
 
       <section className="bottom-dock" aria-label="Dolly zoom controls and camera values">
         <DollyControl
           t={t}
+          distance={distance}
+          focalLength={focalLength}
+          verticalFov={verticalFov}
           compensated={compensated}
           onChange={handleSlider}
           onInteraction={cancelMotion}

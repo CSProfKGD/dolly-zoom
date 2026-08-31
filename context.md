@@ -2,12 +2,12 @@
 
 ## Camera conventions
 
-- World optical axis is the Three.js Z axis. The golden subject stays fixed at `z = 0`; the independent stability plane moves along that axis. Displayed Z is the distance from camera to that plane.
-- Dolly parameter: `t ∈ [0, 1]`, with `Z(t) = 6 - 4t` metres.
-- Initial subject compensation: `f = Z × 35 / 6`, giving 35 mm at 6 m, 23.33 mm at 4 m, and 11.67 mm at 2 m.
+- World optical axis is the Three.js Z axis. The golden subject begins at `x = 0, z = 0` and can translate on the floor plane; the camera tracks it at the displayed relative Z distance.
+- Dolly parameter: `t ∈ [0, 1]`, with `Z(t) = 16.6667 - 12.6667t` metres.
+- Subject compensation is `f = 6Z`, giving 100 mm at 16.67 m, 62 mm at the 10.33 m midpoint, and 24 mm at 4 m.
 - Sensor dimensions are 36 × 24 mm. Camera-view FOV is vertical: `2 atan(24 / 2f)`. The top-down frustum uses the 36 mm horizontal sensor dimension.
-- The foreground sphere has diameter 1.04 world units at `z = 0`. A 1.22-unit cyan cube sits offset at `z = 0.65` in front, and a purple cube at `z = -1.1` behind. All three use glossy physical materials above a reflective dark floor.
-- For stability-plane depth `d`, compensation preserves `f / (cameraZ - d)`. Dragging the plane updates that relationship directly without moving scene objects.
+- The foreground sphere has diameter 1.7 world units at `z = 0`. Two 6.8-unit architectural slabs begin at `z = -10.5`, symmetrically offset left and right. The floor is matte-black with only soft contact shadowing.
+- Compensation preserves `f / cameraZ = 6`. The slabs can translate and rotate on the ground plane without changing the optical model.
 - Projected size follows the pinhole relationship `imageSize = worldSize × f / distance`. Never scale scene objects to simulate compensation.
 
 ## Visual system
@@ -16,7 +16,7 @@
 - Cyan `#26c9f3` is reserved for camera/frustum/active control state.
 - Gold `#ffd026` identifies the subject and focal-length value.
 - System Apple font stack only. Numbers use tabular figures. Borders remain at hairline opacity.
-- Desktop uses a teaching header beside stacked visualizations with one compact centered glass control dock at the bottom. Its treatment follows the Learning Rate/Steerable Filters controls: white slider progress, ringed dark thumb, compact monospaced readout, and inset action button. Tablet and mobile collapse to one column.
+- The page is one continuous black presentation stage: hero, cinematic scene, technical diagram, then borderless controls. All major left and right edges share one content grid.
 
 ## Motion and accessibility
 

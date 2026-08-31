@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeFrustum,
   focalLengthForConstantScale,
+  horizontalFovFromFocalLength,
   interpolateCameraDistance,
   projectRayToPlane,
   projectSize,
@@ -10,19 +11,19 @@ import {
 
 describe('camera math', () => {
   it('interpolates the dolly endpoints and midpoint', () => {
-    expect(interpolateCameraDistance(0)).toBe(6);
-    expect(interpolateCameraDistance(0.5)).toBe(4);
-    expect(interpolateCameraDistance(1)).toBe(2);
+    expect(interpolateCameraDistance(0)).toBeCloseTo(16.666667, 5);
+    expect(interpolateCameraDistance(0.5)).toBeCloseTo(10.333333, 5);
+    expect(interpolateCameraDistance(1)).toBe(4);
   });
 
   it('compensates focal length with a constant f/Z ratio', () => {
-    expect(focalLengthForConstantScale(6)).toBeCloseTo(35, 8);
-    expect(focalLengthForConstantScale(4)).toBeCloseTo(23.333333, 5);
-    expect(focalLengthForConstantScale(2)).toBeCloseTo(11.666667, 5);
+    expect(focalLengthForConstantScale(100 / 6)).toBeCloseTo(100, 8);
+    expect(focalLengthForConstantScale(10.333333)).toBeCloseTo(62, 5);
+    expect(focalLengthForConstantScale(4)).toBeCloseTo(24, 8);
   });
 
   it('derives vertical FOV from a 24mm sensor height', () => {
-    expect(verticalFovFromFocalLength(23.333333)).toBeCloseTo(54.432, 2);
+    expect(verticalFovFromFocalLength(62)).toBeCloseTo(21.91, 2);
   });
 
   it('keeps projected subject size constant under compensation', () => {
@@ -35,17 +36,14 @@ describe('camera math', () => {
   });
 
   it('keeps a selected stability plane constant without moving scene objects', () => {
-    const stableDepth = 0.5;
-    const farPlaneDistance = 6 - stableDepth;
-    const farSize = projectSize(1, focalLengthForConstantScale(farPlaneDistance), farPlaneDistance);
-    [6, 5, 4, 3, 2].forEach((cameraZ) => {
-      const planeDistance = cameraZ - stableDepth;
-      expect(projectSize(1, focalLengthForConstantScale(planeDistance), planeDistance)).toBeCloseTo(farSize, 10);
+    const farSize = projectSize(1, focalLengthForConstantScale(100 / 6), 100 / 6);
+    [100 / 6, 14, 10, 7, 4].forEach((cameraZ) => {
+      expect(projectSize(1, focalLengthForConstantScale(cameraZ), cameraZ)).toBeCloseTo(farSize, 10);
     });
   });
 
   it('changes projected subject size when focal length is frozen', () => {
-    expect(projectSize(1.04, 35, 2)).toBeCloseTo(projectSize(1.04, 35, 6) * 3, 10);
+    expect(projectSize(1.7, 100, 4)).toBeCloseTo(projectSize(1.7, 100, 100 / 6) * (25 / 6), 10);
   });
 
   it('projects subject-edge rays and symmetric frustum boundaries', () => {
@@ -58,5 +56,12 @@ describe('camera math', () => {
     expect(frustum.top.y + frustum.bottom.y).toBeCloseTo(260, 8);
     expect(frustum.top.y).toBeLessThan(camera.y);
     expect(frustum.bottom.y).toBeGreaterThan(camera.y);
+  });
+
+  it('keeps the widest 24mm diagram frustum inside its drawing stage', () => {
+    const halfAngle = horizontalFovFromFocalLength(24) * Math.PI / 360;
+    const halfHeight = Math.tan(halfAngle) * (4 + 10.5) * 7.8;
+    expect(132 - halfHeight).toBeGreaterThan(32);
+    expect(132 + halfHeight).toBeLessThan(232);
   });
 });

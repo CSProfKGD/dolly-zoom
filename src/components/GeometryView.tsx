@@ -1,43 +1,50 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
-import { computeFrustum } from '@/src/lib/cameraMath';
+import { horizontalFovFromFocalLength } from '@/src/lib/cameraMath';
 
-export type CubePose = { x: number; z: number; yaw: number };
+export type SlabPose = { x: number; z: number; yaw: number };
+export type SubjectPose = { x: number; z: number };
 
 type GeometryViewProps = {
   distance: number;
   focalLength: number;
-  subjectDepth: number;
-  cubes: [CubePose, CubePose];
-  onSubjectDepthChange: (depth: number) => void;
-  onCubeChange: (index: number, pose: CubePose) => void;
+  slabs: [SlabPose, SlabPose];
+  subject: SubjectPose;
+  onSlabChange: (index: number, pose: SlabPose) => void;
+  onSubjectChange: (pose: SubjectPose) => void;
 };
 
 const AXIS_Y = 132;
-const SUBJECT_RADIUS = 17;
-const BACKGROUND_X = 710;
-const SUBJECT_ORIGIN_X = 408;
-const DEPTH_SCALE = 52;
-const LATERAL_SCALE = 42;
-const MIN_SUBJECT_DEPTH = -4.5;
-const MAX_SUBJECT_DEPTH = 1.6;
-const CUBE_SIZE = 1.22;
+const SUBJECT_X = 420;
+const BACKGROUND_X = 738;
+const BACKGROUND_DEPTH = 10.5;
+const WORLD_TO_Y = 7.8;
+const WORLD_TO_X = (BACKGROUND_X - SUBJECT_X) / BACKGROUND_DEPTH;
+const SUBJECT_RADIUS_WORLD = 0.85;
+const SLAB_WIDTH = 1.35;
+const SLAB_DEPTH = 0.55;
+const FAR_DISTANCE = 100 / 6;
+const NEAR_DISTANCE = 4;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function diagramX(z: number): number { return SUBJECT_ORIGIN_X - z * DEPTH_SCALE; }
-function diagramY(x: number): number { return AXIS_Y - x * LATERAL_SCALE; }
-function n(value: number): string { return Number.isFinite(value) ? value.toFixed(2) : '0'; }
+function n(value: number): string {
+  return Number.isFinite(value) ? value.toFixed(2) : '0';
+}
 
-function cubeFootprint(pose: CubePose): string {
-  const half = CUBE_SIZE / 2;
+function diagramX(z: number): number { return SUBJECT_X - z * WORLD_TO_X; }
+function diagramY(x: number): number { return AXIS_Y - x * WORLD_TO_Y; }
+
+function slabFootprint(pose: SlabPose): string {
+  const halfWidth = SLAB_WIDTH / 2;
+  const halfDepth = SLAB_DEPTH / 2;
   const cos = Math.cos(pose.yaw);
   const sin = Math.sin(pose.yaw);
-  return [[-half, -half], [half, -half], [half, half], [-half, half]]
+  return [[-halfWidth, -halfDepth], [halfWidth, -halfDepth], [halfWidth, halfDepth], [-halfWidth, halfDepth]]
     .map(([localX, localZ]) => {
       const worldX = pose.x + localX * cos + localZ * sin;
       const worldZ = pose.z - localX * sin + localZ * cos;
@@ -45,122 +52,124 @@ function cubeFootprint(pose: CubePose): string {
     }).join(' ');
 }
 
-export function GeometryView({ distance, focalLength, subjectDepth, cubes, onSubjectDepthChange, onCubeChange }: GeometryViewProps) {
-  const [draggingSubject, setDraggingSubject] = useState(false);
-  const activeCube = useRef<number | null>(null);
-  const lastPointer = useRef({ x: 0, y: 0 });
-  const cameraX = 82 + (6 - distance) * 51;
-  const subjectX = diagramX(subjectDepth);
-  const frustum = computeFrustum({ x: cameraX, y: AXIS_Y }, BACKGROUND_X, focalLength);
+export function GeometryView({ distance, focalLength, slabs, subject, onSlabChange, onSubjectChange }: GeometryViewProps) {
+  const drag = useRef<{ index: number; mode: 'move' | 'rotate'; x: number; y: number } | null>(null);
+  const draggingSubject = useRef(false);
+  const travel = (FAR_DISTANCE - distance) / (FAR_DISTANCE - NEAR_DISTANCE);
+  const subjectX = diagramX(subject.z);
+  const subjectY = diagramY(subject.x);
+  const cameraX = 92 + travel * 218 + (subjectX - SUBJECT_X);
+  const halfAngle = horizontalFovFromFocalLength(focalLength) * Math.PI / 360;
+  const backgroundDistance = distance + BACKGROUND_DEPTH;
+  const frustumHalfHeight = Math.tan(halfAngle) * backgroundDistance * WORLD_TO_Y;
+  const subjectHalfHeight = SUBJECT_RADIUS_WORLD * WORLD_TO_Y;
+  const rayHalfHeight = subjectHalfHeight * backgroundDistance / distance;
 
-  const svgPoint = (event: ReactPointerEvent<SVGElement>) => {
+  const toSvgPoint = (event: ReactPointerEvent<SVGGElement>) => {
     const svg = event.currentTarget.ownerSVGElement;
     if (!svg) return { x: 0, y: 0 };
     const rect = svg.getBoundingClientRect();
     return { x: (event.clientX - rect.left) * 820 / rect.width, y: (event.clientY - rect.top) * 264 / rect.height };
   };
 
-  const updateSubject = (event: ReactPointerEvent<SVGGElement>) => {
-    const point = svgPoint(event);
-    onSubjectDepthChange(clamp((SUBJECT_ORIGIN_X - point.x) / DEPTH_SCALE, MIN_SUBJECT_DEPTH, MAX_SUBJECT_DEPTH));
-  };
-
-  const beginCubeDrag = (index: number, event: ReactPointerEvent<SVGPolygonElement>) => {
+  const beginSlabDrag = (index: number, event: ReactPointerEvent<SVGGElement>) => {
     event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    activeCube.current = index;
-    lastPointer.current = { x: event.clientX, y: event.clientY };
+    if (Number.isFinite(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = { index, mode: event.buttons === 3 ? 'rotate' : 'move', x: event.clientX, y: event.clientY };
   };
 
-  const moveCube = (index: number, event: ReactPointerEvent<SVGPolygonElement>) => {
-    if (activeCube.current !== index || event.buttons === 0) return;
-    const pose = cubes[index];
-    if (event.buttons === 3) {
-      onCubeChange(index, { ...pose, yaw: pose.yaw + (event.clientX - lastPointer.current.x) * 0.015 });
+  const moveSlab = (index: number, event: ReactPointerEvent<SVGGElement>) => {
+    const active = drag.current;
+    if (!active || active.index !== index || event.buttons === 0) return;
+    const pose = slabs[index];
+    if (event.buttons === 3 || active.mode === 'rotate') {
+      active.mode = 'rotate';
+      onSlabChange(index, { ...pose, yaw: pose.yaw + (event.clientX - active.x) * 0.014 });
     } else {
-      const point = svgPoint(event);
-      onCubeChange(index, {
+      const point = toSvgPoint(event);
+      onSlabChange(index, {
         ...pose,
-        x: clamp((AXIS_Y - point.y) / LATERAL_SCALE, -2.25, 2.25),
-        z: clamp((SUBJECT_ORIGIN_X - point.x) / DEPTH_SCALE, -4.5, 1.6),
+        x: clamp((AXIS_Y - point.y) / WORLD_TO_Y, -7, 7),
+        z: clamp((SUBJECT_X - point.x) / WORLD_TO_X, -10.5, -3),
       });
     }
-    lastPointer.current = { x: event.clientX, y: event.clientY };
+    drag.current = { ...active, x: event.clientX, y: event.clientY };
+  };
+
+  const moveSubject = (event: ReactPointerEvent<SVGGElement>) => {
+    if (!draggingSubject.current || event.buttons === 0) return;
+    const point = toSvgPoint(event);
+    onSubjectChange({
+      x: clamp((AXIS_Y - point.y) / WORLD_TO_Y, -1.5, 1.5),
+      z: clamp((SUBJECT_X - point.x) / WORLD_TO_X, -2, 1),
+    });
   };
 
   return (
     <div className="geometry-view">
       <svg viewBox="0 0 820 264" role="img" aria-labelledby="geometry-title geometry-desc" preserveAspectRatio="xMidYMid meet" onContextMenu={(event) => event.preventDefault()}>
-        <title id="geometry-title">Interactive top-down camera geometry</title>
-        <desc id="geometry-desc">A cyan camera and frustum face a fixed golden subject, an independently movable stability plane, and two draggable, rotatable cubes.</desc>
-        <defs>
-          <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
+        <title id="geometry-title">Top-down dolly zoom geometry</title>
+        <desc id="geometry-desc">A cyan camera moves on a horizontal optical axis. Its frustum and subject-edge rays terminate at gray background geometry while the gold subject stays fixed. Background slabs can be moved or rotated.</desc>
 
-        <path className="frustum-fill" d={`M ${n(cameraX)} ${AXIS_Y} L ${BACKGROUND_X} ${n(frustum.top.y)} L ${BACKGROUND_X} ${n(frustum.bottom.y)} Z`} />
-        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={frustum.top.x} y2={frustum.top.y} />
-        <line className="frustum-line" x1={cameraX} y1={AXIS_Y} x2={frustum.bottom.x} y2={frustum.bottom.y} />
+        <line className="optical-axis" x1="58" y1={subjectY} x2={BACKGROUND_X} y2={subjectY} />
+        <path className="frustum-fill" d={`M ${n(cameraX)} ${n(subjectY)} L ${BACKGROUND_X} ${n(subjectY - frustumHalfHeight)} L ${BACKGROUND_X} ${n(subjectY + frustumHalfHeight)} Z`} />
+        <line className="frustum-line" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY - frustumHalfHeight} />
+        <line className="frustum-line" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY + frustumHalfHeight} />
+        <line className="edge-ray" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY - rayHalfHeight} />
+        <line className="edge-ray" x1={cameraX} y1={subjectY} x2={BACKGROUND_X} y2={subjectY + rayHalfHeight} />
 
-        <g className="diagram-camera" transform={`translate(${n(cameraX - 31)} ${AXIS_Y - 19})`} filter="url(#cyanGlow)">
-          <rect width="48" height="38" rx="6" />
-          <path d="M48 10 L61 4 L61 34 L48 28 Z" />
-          <circle cx="22" cy="19" r="3" />
+        <g className="diagram-camera" transform={`translate(${n(cameraX - 28)} ${n(subjectY - 17)})`}>
+          <rect width="43" height="34" rx="5" />
+          <path d="M43 9 L55 4 L55 30 L43 25 Z" />
+          <circle cx="20" cy="17" r="2.5" />
         </g>
-        <text className="focal-label" x={cameraX} y={AXIS_Y - 32} textAnchor="middle">f = {focalLength.toFixed(1)} mm</text>
-
-        {cubes.map((cube, index) => (
-          <polygon
-            key={index}
-            className={`cube-footprint cube-${index}`}
-            points={cubeFootprint(cube)}
-            role="slider"
-            tabIndex={0}
-            aria-label={`${index === 0 ? 'Cyan' : 'Purple'} cube position and rotation`}
-            onPointerDown={(event) => beginCubeDrag(index, event)}
-            onPointerMove={(event) => moveCube(index, event)}
-            onPointerUp={() => { activeCube.current = null; }}
-            onPointerCancel={() => { activeCube.current = null; }}
-          />
-        ))}
+        <text className="focal-label" x={cameraX} y={subjectY - 27} textAnchor="middle">{focalLength.toFixed(0)} mm</text>
 
         <g
-          className="subject-plane-control-svg"
-          role="slider"
+          className="subject-control"
+          role="button"
           tabIndex={0}
-          aria-label="Stable pixel plane depth"
-          aria-valuemin={MIN_SUBJECT_DEPTH}
-          aria-valuemax={MAX_SUBJECT_DEPTH}
-          aria-valuenow={Number(subjectDepth.toFixed(2))}
+          aria-label="Golden subject. Drag to translate it on the floor plane."
           onPointerDown={(event) => {
             event.preventDefault();
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setDraggingSubject(true);
-            updateSubject(event);
+            if (Number.isFinite(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
+            draggingSubject.current = true;
           }}
-          onPointerMove={(event) => { if (draggingSubject) updateSubject(event); }}
-          onPointerUp={() => setDraggingSubject(false)}
-          onPointerCancel={() => setDraggingSubject(false)}
-          onKeyDown={(event) => {
-            if (event.key === 'ArrowLeft') onSubjectDepthChange(clamp(subjectDepth + 0.05, MIN_SUBJECT_DEPTH, MAX_SUBJECT_DEPTH));
-            if (event.key === 'ArrowRight') onSubjectDepthChange(clamp(subjectDepth - 0.05, MIN_SUBJECT_DEPTH, MAX_SUBJECT_DEPTH));
-            if (event.key === 'Home') onSubjectDepthChange(MAX_SUBJECT_DEPTH);
-            if (event.key === 'End') onSubjectDepthChange(MIN_SUBJECT_DEPTH);
-          }}
+          onPointerMove={moveSubject}
+          onPointerUp={() => { draggingSubject.current = false; }}
+          onPointerCancel={() => { draggingSubject.current = false; }}
         >
-          <line className="subject-plane-hit" x1={subjectX} y1="25" x2={subjectX} y2="226" />
-          <line className="subject-plane-line" x1={subjectX} y1="25" x2={subjectX} y2="226" />
-          <circle className="subject-handle" cx={subjectX} cy="25" r="4" />
+          <circle className="subject-hit" cx={subjectX} cy={subjectY} r="28" />
+          <circle className="subject-shape" cx={subjectX} cy={subjectY} r="15" />
         </g>
+        <line className="background-plane-svg" x1={BACKGROUND_X} y1="33" x2={BACKGROUND_X} y2="231" />
 
-        <circle className="subject-shape" cx={SUBJECT_ORIGIN_X} cy={AXIS_Y} r={SUBJECT_RADIUS} />
+        {slabs.map((slab, index) => (
+          <g
+            key={index}
+            className="slab-control"
+            role="button"
+            tabIndex={0}
+            aria-label={`${index === 0 ? 'Left' : 'Right'} background slab. Drag to move; hold both mouse buttons while dragging to rotate.`}
+            onPointerDown={(event) => beginSlabDrag(index, event)}
+            onPointerMove={(event) => moveSlab(index, event)}
+            onPointerUp={() => { drag.current = null; }}
+            onPointerCancel={() => { drag.current = null; }}
+          >
+            <polygon className="slab-hit" points={slabFootprint(slab)} />
+            <polygon className={`background-object-svg slab-${index}`} points={slabFootprint(slab)} />
+          </g>
+        ))}
 
-        <line className="distance-line" x1={cameraX} y1="226" x2={subjectX} y2="226" />
-        <line className="distance-tick" x1={cameraX} y1="220" x2={cameraX} y2="232" />
-        <line className="distance-tick" x1={subjectX} y1="220" x2={subjectX} y2="232" />
-        <text className="distance-label" x={(cameraX + subjectX) / 2} y="218" textAnchor="middle">Z = {(distance - subjectDepth).toFixed(2)} m</text>
+        <line className="distance-line" x1={cameraX} y1="220" x2={subjectX} y2="220" />
+        <line className="distance-tick" x1={cameraX} y1="215" x2={cameraX} y2="225" />
+        <line className="distance-tick" x1={subjectX} y1="215" x2={subjectX} y2="225" />
+        <text className="distance-label" x={(cameraX + subjectX) / 2} y="213" textAnchor="middle">Z = {distance.toFixed(2)} m</text>
+
+        <g className="equation-lock" transform="translate(442 196)">
+          <text className="equation-text">f / Z = constant</text>
+          <text className="equation-caption" y="14">Constant projected size</text>
+        </g>
       </svg>
     </div>
   );

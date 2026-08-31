@@ -1,6 +1,7 @@
-export const CAMERA_DISTANCE_FAR = 6;
-export const CAMERA_DISTANCE_NEAR = 2;
-export const FOCAL_LENGTH_FAR = 35;
+export const CAMERA_DISTANCE_FAR = 100 / 6;
+export const CAMERA_DISTANCE_NEAR = 4;
+export const FOCAL_LENGTH_FAR = 100;
+export const FOCAL_LENGTH_NEAR = 24;
 export const SENSOR_HEIGHT = 24;
 export const SENSOR_WIDTH = 36;
 

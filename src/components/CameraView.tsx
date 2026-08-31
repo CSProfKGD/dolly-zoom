@@ -5,89 +5,97 @@
 import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
-import type { CubePose } from './GeometryView';
+import type { SlabPose, SubjectPose } from './GeometryView';
 
 type CameraViewProps = {
   distance: number;
   verticalFov: number;
-  cubes: [CubePose, CubePose];
+  slabs: [SlabPose, SlabPose];
+  subject: SubjectPose;
 };
 
-function CameraRig({ distance, verticalFov }: Pick<CameraViewProps, 'distance' | 'verticalFov'>) {
+function CameraRig({ distance, verticalFov, subject }: CameraViewProps) {
   const { camera, invalidate } = useThree();
 
   useEffect(() => {
     const perspective = camera as THREE.PerspectiveCamera;
-    perspective.position.set(0, 0.8, distance);
+    perspective.position.set(subject.x, 0.85, subject.z + distance);
     perspective.fov = verticalFov;
     perspective.near = 0.05;
-    perspective.far = 40;
-    perspective.lookAt(0, 0.62, 0);
+    perspective.far = 80;
+    perspective.lookAt(subject.x, 0.85, subject.z);
     perspective.updateProjectionMatrix();
     invalidate();
-  }, [camera, distance, invalidate, verticalFov]);
+  }, [camera, distance, invalidate, subject.x, subject.z, verticalFov]);
 
   return null;
 }
 
-function Scene({ cubes }: Pick<CameraViewProps, 'cubes'>) {
+function ArchitecturalScene({ slabs, subject }: Pick<CameraViewProps, 'slabs' | 'subject'>) {
   return (
     <>
-      <color attach="background" args={['#020304']} />
-      <fog attach="fog" args={['#020304', 9, 17]} />
-      <ambientLight intensity={0.48} />
-      <directionalLight position={[1.8, 5.5, 4]} intensity={4.2} color="#fff4d6" castShadow />
-      <pointLight position={[0, 2.6, 2.5]} intensity={12} distance={9} color="#ffd94b" />
-      <spotLight position={[0, 6, -1]} angle={0.55} penumbra={0.9} intensity={18} color="#d5e8f2" />
+      <color attach="background" args={['#000000']} />
+      <fog attach="fog" args={['#000000', 26, 52]} />
+      <ambientLight intensity={0.58} />
+      <hemisphereLight args={['#e9f2f7', '#050607', 1.15]} />
+      <directionalLight
+        position={[-4, 8, 7]}
+        intensity={3.4}
+        color="#fff4dc"
+        castShadow
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0003}
+      />
+      <directionalLight position={[7, 5, -2]} intensity={1.7} color="#bcd8e4" />
+      <pointLight position={[0, 4.5, 3]} intensity={6.5} distance={16} color="#ffd864" />
 
-      <mesh position={[0, 0.51, 0]} castShadow>
-        <sphereGeometry args={[0.52, 72, 48]} />
-        <meshPhysicalMaterial color="#ffc814" roughness={0.14} metalness={0.38} clearcoat={1} clearcoatRoughness={0.08} />
-      </mesh>
-
-      <mesh position={[cubes[0].x, 0.736, cubes[0].z]} rotation={[0.12, cubes[0].yaw, 0.08]} castShadow receiveShadow>
-        <boxGeometry args={[1.22, 1.22, 1.22]} />
-        <meshPhysicalMaterial color="#2ba9c1" emissive="#082b33" emissiveIntensity={0.24} roughness={0.17} metalness={0.34} clearcoat={1} clearcoatRoughness={0.07} />
-      </mesh>
-      <mesh position={[cubes[1].x, 0.673, cubes[1].z]} rotation={[-0.1, cubes[1].yaw, -0.07]} castShadow receiveShadow>
-        <boxGeometry args={[1.22, 1.22, 1.22]} />
-        <meshPhysicalMaterial color="#9d68c5" emissive="#2c1538" emissiveIntensity={0.24} roughness={0.17} metalness={0.34} clearcoat={1} clearcoatRoughness={0.07} />
-      </mesh>
-
-      <mesh position={[0, -0.51, 0]} scale={[1, 0.82, 1]} renderOrder={2}>
-        <sphereGeometry args={[0.52, 48, 32]} />
-        <meshBasicMaterial color="#b88700" transparent opacity={0.055} depthTest={false} depthWrite={false} />
-      </mesh>
-      <mesh position={[cubes[0].x, -0.736, cubes[0].z]} rotation={[-0.12, cubes[0].yaw, -0.08]} renderOrder={2}>
-        <boxGeometry args={[1.22, 1.22, 1.22]} />
-        <meshBasicMaterial color="#249cb4" transparent opacity={0.04} depthTest={false} depthWrite={false} />
-      </mesh>
-      <mesh position={[cubes[1].x, -0.673, cubes[1].z]} rotation={[0.1, cubes[1].yaw, 0.07]} renderOrder={2}>
-        <boxGeometry args={[1.22, 1.22, 1.22]} />
-        <meshBasicMaterial color="#8251a7" transparent opacity={0.04} depthTest={false} depthWrite={false} />
+      <mesh position={[subject.x, 0.85, subject.z]} castShadow>
+        <sphereGeometry args={[0.85, 96, 64]} />
+        <meshPhysicalMaterial
+          color="#f6c927"
+          roughness={0.2}
+          metalness={0.12}
+          clearcoat={0.68}
+          clearcoatRoughness={0.16}
+        />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, -2.5]} receiveShadow renderOrder={1}>
-        <planeGeometry args={[20, 22]} />
-        <meshPhysicalMaterial color="#080a0c" roughness={0.16} metalness={0.72} clearcoat={1} clearcoatRoughness={0.1} transparent opacity={0.94} depthWrite={false} />
+      <mesh position={[slabs[0].x, 3.4, slabs[0].z]} rotation={[0, slabs[0].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.35, 6.8, 0.55]} />
+        <meshStandardMaterial color="#a4adb0" roughness={0.48} metalness={0.18} />
+      </mesh>
+      <mesh position={[slabs[1].x, 3.4, slabs[1].z]} rotation={[0, slabs[1].yaw, 0]} castShadow receiveShadow>
+        <boxGeometry args={[1.35, 6.8, 0.55]} />
+        <meshStandardMaterial color="#747d82" roughness={0.37} metalness={0.28} />
+      </mesh>
+
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.015, -7]} receiveShadow>
+        <planeGeometry args={[34, 38]} />
+        <meshStandardMaterial color="#050708" roughness={0.72} metalness={0.2} />
       </mesh>
     </>
   );
 }
 
-export function CameraView({ distance, verticalFov, cubes }: CameraViewProps) {
+export function CameraView({ distance, verticalFov, slabs, subject }: CameraViewProps) {
   return (
-    <div className="camera-view" aria-label="Perspective camera view of a fixed golden sphere and two background cubes">
+    <div className="camera-view" aria-label="Perspective camera view of a fixed golden sphere and two architectural slabs">
       <Canvas
         dpr={[1, 1.75]}
         frameloop="demand"
         shadows={{ type: THREE.PCFShadowMap }}
-        camera={{ position: [0, 0.8, distance], fov: verticalFov, near: 0.05, far: 40 }}
+        camera={{ position: [subject.x, 0.85, subject.z + distance], fov: verticalFov, near: 0.05, far: 80 }}
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       >
-        <CameraRig distance={distance} verticalFov={verticalFov} />
-        <Scene cubes={cubes} />
+        <CameraRig distance={distance} verticalFov={verticalFov} subject={subject} slabs={slabs} />
+        <ArchitecturalScene slabs={slabs} subject={subject} />
       </Canvas>
+
+      <div className="subject-invariant" aria-hidden="true">
+        <i className="bracket bracket-tl" /><i className="bracket bracket-tr" />
+        <i className="bracket bracket-bl" /><i className="bracket bracket-br" />
+        <span>Subject size · fixed</span>
+      </div>
     </div>
   );
 }
