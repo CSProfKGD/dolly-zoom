@@ -47,9 +47,8 @@ export function DollyZoomDemo() {
     cancelMotion();
     const startT = tRef.current;
     const endT = startT >= 0.999 ? 0 : 1;
-    setCompensated(true);
     setIsPlaying(true);
-    setFocalLength(focalLengthForConstantScale(interpolateCameraDistance(startT) - stableDepth));
+    if (compensated) setFocalLength(focalLengthForConstantScale(interpolateCameraDistance(startT) - stableDepth));
     const startLeg = (fromT: number, toT: number) => {
       const started = performance.now();
       const duration = 3800 * Math.max(0.18, Math.abs(toT - fromT));
@@ -58,14 +57,14 @@ export function DollyZoomDemo() {
         const nextT = fromT + (toT - fromT) * easeInOutCubic(progress);
         const nextDistance = interpolateCameraDistance(nextT);
         setT(nextT);
-        setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
+        if (compensated) setFocalLength(focalLengthForConstantScale(nextDistance - stableDepth));
         if (progress < 1) autoFrame.current = requestAnimationFrame(tick);
         else startLeg(toT, toT === 1 ? 0 : 1);
       };
       autoFrame.current = requestAnimationFrame(tick);
     };
     startLeg(startT, endT);
-  }, [cancelMotion, stableDepth]);
+  }, [cancelMotion, compensated, stableDepth]);
 
   const handleSlider = useCallback((nextT: number) => {
     cancelMotion();

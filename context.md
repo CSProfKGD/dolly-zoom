@@ -27,6 +27,7 @@
 
 - Direct slider movement is never eased; only autoplay and compensation restoration use easing.
 - The page loads completely still. Play continues smoothly from the current camera position without snapping, then ping-pongs continuously between Near and Far until stopped. It becomes a stop control while running, and any direct interaction cancels the animation immediately.
+- Play never changes the Dolly Zoom mode: when the mode is off, autoplay moves the camera while retaining the frozen focal length; when it is on, focal-length compensation remains active.
 - All controls are native buttons/ranges with visible focus rings and accessible labels.
 - The SVG has a title and description. The WebGL panel has a text alternative.
 - `prefers-reduced-motion` minimizes CSS transitions; no animation runs automatically on load.
